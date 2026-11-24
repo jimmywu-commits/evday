@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="蛋白質">
+<meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<title>蛋白質追蹤</title>
+<style>
+  :root {
+    --bg: #f2f2f7; --card: #ffffff; --card2: #f2f2f7;
+    --text: #1c1c1e; --text2: #6e6e73; --text3: #a1a1a6; --border: #e3e3e8;
+    --blue: #0a84ff; --green: #30b158; --orange: #ff9f0a; --red: #ff453a;
+    --minus-bg: #fdeceb; --t0: rgba(255,69,58,.18); --t1: rgba(255,159,10,.28); --t2: rgba(48,177,88,.35);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #000000; --card: #1c1c1e; --card2: #2c2c2e;
+      --text: #f2f2f7; --text2: #a1a1a6; --text3: #6e6e73; --border: #38383a;
+      --minus-bg: #3a1d1c;
+    }
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { background: var(--bg); color: var(--text); }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Noto Sans TC", sans-serif;
+    -webkit-user-select: none; user-select: none; -webkit-text-size-adjust: 100%;
+    padding-bottom: calc(80px + env(safe-area-inset-bottom));
+  }
+  input { -webkit-user-select: text; user-select: text; font: inherit; }
+  button { font: inherit; color: inherit; border: none; background: none; cursor: pointer; touch-action: manipulation; }
+
+  .page { display: none; max-width: 520px; margin: 0 auto; padding: 0 14px; }
+  .page.active { display: block; }
+  .page-top { height: calc(6px + env(safe-area-inset-top)); }
+
+  .sticky { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: calc(10px + env(safe-area-inset-top)) 14px 8px; margin: 0 -14px; }
+  .summary { background: var(--card); border-radius: 16px; padding: 12px 14px 8px; }
+  .summary-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .summary-big { font-size: 32px; font-weight: 700; line-height: 1; }
+  .summary-big small { font-size: 15px; color: var(--text2); font-weight: 500; }
+  .summary-sub { font-size: 12px; color: var(--text2); margin-top: 4px; }
+  .summary-left { font-size: 13px; color: var(--text2); text-align: right; line-height: 1.35; }
+  .summary-left b { color: var(--text); font-size: 18px; }
+  .bar { position: relative; height: 12px; background: var(--card2); border-radius: 6px; margin: 26px 0 22px; }
+  .bar-fill { height: 100%; border-radius: 6px; transition: width .3s, background .3s; }
+  .bar-mark { position: absolute; top: -3px; width: 2px; height: 18px; background: var(--text3); }
+  .bar-mark span { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); font-size: 11px; color: var(--text2); white-space: nowrap; }
+  .bar-mark.up span { top: auto; bottom: 20px; }
+  .bar-mark.end span { left: auto; right: -2px; transform: none; }
+  .bar-mark.hit { background: var(--green); }
+  .bar-mark.hit span { color: var(--green); font-weight: 700; }
+
+  .slots { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 8px; background: var(--card); border-radius: 12px; padding: 4px; }
+  .slot { padding: 10px 0; border-radius: 9px; font-size: 15px; font-weight: 600; color: var(--text2); }
+  .slot.active { background: var(--blue); color: #fff; }
+
+  .label { font-size: 13px; color: var(--text2); font-weight: 600; margin: 16px 4px 8px; display: flex; justify-content: space-between; gap: 8px; }
+  .label span:last-child { font-weight: 500; }
+
+  .foods { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .food { display: flex; height: 92px; border-radius: 16px; overflow: hidden; background: var(--card); position: relative; }
+  .food-minus { width: 30%; background: var(--minus-bg); color: var(--red); font-size: 28px; display: flex; align-items: center; justify-content: center; }
+  .food-plus { width: 70%; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; padding: 0 10px; text-align: left; }
+  .food-minus:active, .food-plus:active { filter: brightness(.88); }
+  .food-name { font-size: 17px; font-weight: 700; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+  .food-unit { font-size: 12px; color: var(--text2); margin-top: 3px; line-height: 1.3; }
+  .food-count { position: absolute; top: 6px; right: 8px; min-width: 24px; height: 24px; padding: 0 7px; border-radius: 12px; background: var(--blue); color: #fff; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+  .food-plus-icon { position: absolute; bottom: 5px; right: 10px; color: var(--blue); font-size: 24px; font-weight: 600; pointer-events: none; }
+  .food.pop { animation: pop .22s; }
+  @keyframes pop { 50% { transform: scale(.96); } }
+
+  .card { background: var(--card); border-radius: 16px; padding: 14px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .full { grid-column: 1 / -1; }
+  .field { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--card2); color: var(--text); font-size: 16px; }
+  .btn { width: 100%; padding: 14px; border-radius: 12px; font-size: 16px; font-weight: 600; }
+  .btn-blue { background: var(--blue); color: #fff; }
+  .btn-gray { background: var(--card2); }
+  .btn-red { background: var(--minus-bg); color: var(--red); }
+  .err { color: var(--red); font-size: 13px; margin-top: 6px; }
+  .err:empty { display: none; }
+  .hint { font-size: 12px; color: var(--text2); margin-top: 8px; line-height: 1.6; }
+  .stack > * + * { margin-top: 10px; }
+
+  .log { display: flex; align-items: center; padding: 11px 0; border-bottom: 1px solid var(--border); font-size: 15px; gap: 10px; }
+  .log:last-child { border-bottom: none; }
+  .log-time { color: var(--text2); font-size: 12px; width: 48px; flex-shrink: 0; line-height: 1.4; }
+  .log-name { flex: 1; min-width: 0; line-height: 1.35; }
+  .log-name small { color: var(--text2); font-size: 12px; }
+  .log-g { color: var(--green); font-weight: 700; }
+  .log-del { color: var(--text3); font-size: 20px; width: 36px; height: 36px; flex-shrink: 0; }
+  .empty { text-align: center; color: var(--text3); font-size: 14px; padding: 18px 0; }
+
+  .ring-wrap { display: flex; justify-content: center; }
+  .ring-center { font-size: 34px; font-weight: 700; fill: var(--text); }
+  .ring-sub { font-size: 13px; fill: var(--text2); }
+  .tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
+  .tier { border-radius: 12px; padding: 10px 4px; text-align: center; background: var(--card2); }
+  .tier span { font-size: 12px; color: var(--text2); }
+  .tier b { display: block; font-size: 18px; }
+  .tier em { display: block; font-style: normal; font-size: 12px; margin-top: 3px; font-weight: 600; color: var(--text2); }
+  .tier.hit { background: var(--t2); }
+  .tier.hit em { color: var(--green); }
+  .slotsum { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .slotsum div { background: var(--card2); border-radius: 10px; padding: 8px 2px; text-align: center; font-size: 12px; color: var(--text2); }
+  .slotsum b { display: block; font-size: 17px; color: var(--text); }
+
+  .week { display: flex; gap: 6px; height: 160px; position: relative; }
+  .week-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; }
+  .week-bar { width: 100%; border-radius: 6px 6px 3px 3px; min-height: 3px; }
+  .week-val { font-size: 11px; color: var(--text2); margin-bottom: 3px; height: 14px; }
+  .week-day { font-size: 11px; color: var(--text2); margin-top: 5px; height: 14px; }
+  .week-line { position: absolute; left: 0; right: 0; border-top: 1.5px dashed var(--green); pointer-events: none; }
+
+  .cal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .cal-head b { font-size: 17px; }
+  .cal-nav { font-size: 24px; width: 44px; height: 36px; color: var(--blue); }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+  .cal-wd { text-align: center; font-size: 11px; color: var(--text3); padding-bottom: 2px; }
+  .cal-day { aspect-ratio: 1; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; background: var(--card2); line-height: 1.15; }
+  .cal-day small { font-size: 9px; font-weight: 500; }
+  .cal-day.t0 { background: var(--t0); } .cal-day.t1 { background: var(--t1); } .cal-day.t2 { background: var(--t2); }
+  .cal-day.t3 { background: var(--green); color: #fff; }
+  .cal-day.today { box-shadow: inset 0 0 0 2px var(--blue); }
+  .cal-day.sel { box-shadow: inset 0 0 0 2px var(--text); }
+  .cal-day.future { opacity: .4; }
+  .cal-day.blank { background: none; }
+  .legend { display: flex; flex-wrap: wrap; gap: 10px; font-size: 11px; color: var(--text2); margin-top: 10px; }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .stat { background: var(--card2); border-radius: 12px; padding: 10px 12px; }
+  .stat span { font-size: 12px; color: var(--text2); }
+  .stat b { display: block; font-size: 20px; margin-top: 2px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { padding: 8px 12px; border-radius: 18px; background: var(--card2); font-size: 14px; font-weight: 600; }
+  .chip.active { background: var(--blue); color: #fff; }
+
+  .set-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 16px; gap: 10px; }
+  .set-row:last-child { border-bottom: none; }
+  .set-row input { width: 92px; padding: 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--card2); color: var(--text); font-size: 16px; text-align: right; }
+  .set-row small { color: var(--text2); font-size: 12px; display: block; }
+  .fm { display: flex; align-items: center; gap: 6px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .fm:last-of-type { border-bottom: none; }
+  .fm .log-name { font-size: 15px; }
+  .fm input { width: 64px; padding: 7px; border-radius: 8px; border: 1px solid var(--border); background: var(--card2); color: var(--text); font-size: 16px; text-align: right; }
+  .fm-g { font-size: 12px; color: var(--text2); }
+  .fm-move { width: 32px; height: 36px; font-size: 16px; color: var(--blue); }
+  .fm-move:disabled { color: var(--text3); }
+  .seg { display: grid; grid-template-columns: 1fr 1fr; background: var(--card2); border-radius: 10px; padding: 3px; margin-bottom: 8px; }
+  .seg button { padding: 8px; border-radius: 8px; font-size: 14px; font-weight: 600; color: var(--text2); }
+  .seg button.active { background: var(--card); color: var(--text); }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 4px; margin-right: 6px; vertical-align: 1px; background: var(--text3); }
+  .dot.ok { background: var(--green); } .dot.bad { background: var(--red); } .dot.wait { background: var(--orange); }
+
+  .tabbar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 10; display: grid; grid-template-columns: repeat(4, 1fr); background: var(--card); border-top: 1px solid var(--border); padding: 6px 0 calc(6px + env(safe-area-inset-bottom)); }
+  .tab { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; color: var(--text3); padding: 4px 0; }
+  .tab svg { width: 26px; height: 26px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .tab.active { color: var(--blue); }
+
+  .toast { position: fixed; left: 50%; bottom: calc(90px + env(safe-area-inset-bottom)); transform: translate(-50%, 20px); background: rgba(28,28,30,.95); color: #fff; padding: 12px 14px; border-radius: 14px; font-size: 14px; line-height: 1.5; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; width: calc(100% - 28px); max-width: 480px; z-index: 20; display: flex; align-items: center; gap: 10px; }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+  .toast-msg { flex: 1; white-space: pre-line; }
+  .toast-undo { color: #64d2ff; font-weight: 700; padding: 8px 6px; }
+</style>
+</head>
+<body>
+
+<section class="page active" id="page-input">
+  <div class="sticky">
+    <div class="summary" id="summary"></div>
+    <div class="slots" id="slots"></div>
+  </div>
+  <div class="label"><span>右邊 +1 份・左邊 −1 份</span><span id="order-hint"></span></div>
+  <div class="foods" id="foods"></div>
+
+  <div class="label"><span>新增自訂食物（會變成常用按鈕）</span></div>
+  <div class="card">
+    <div class="grid2">
+      <input class="field full" id="new-name" placeholder="食物名稱，例如：牛排" maxlength="12">
+      <input class="field" id="new-unit" placeholder="份量，例如：100g" maxlength="12">
+      <input class="field" id="new-g" type="number" inputmode="decimal" placeholder="每份蛋白質 g" min="0.5" max="200" step="0.5">
+    </div>
+    <div class="err" id="new-err"></div>
+    <button class="btn btn-blue" id="new-add" style="margin-top:10px">加入常用並記錄 1 份</button>
+    <div class="hint">參考值：牛肉 100g ≈ 26g・豬里肌 100g ≈ 22g・蝦仁 100g ≈ 20g・鮪魚罐頭 1 罐 ≈ 18g・毛豆 100g ≈ 13g・起司 1 片 ≈ 4g・茶葉蛋 1 顆 ≈ 7g・超商雞胸 1 包 ≈ 24g（以包裝標示為準）</div>
+  </div>
+</section>
+
+<section class="page" id="page-today">
+  <div class="page-top"></div>
+  <div class="label"><span id="today-title"></span><span id="today-streak"></span></div>
+  <div class="card">
+    <div class="ring-wrap" id="ring"></div>
+    <div class="tiers" id="tiers"></div>
+  </div>
+  <div class="label"><span>各時段</span></div>
+  <div class="card"><div class="slotsum" id="slotsum"></div></div>
+  <div class="label"><span>今日明細</span><span>點 × 刪除</span></div>
+  <div class="card" id="today-log"></div>
+</section>
+
+<section class="page" id="page-cal">
+  <div class="page-top"></div>
+  <div class="label"><span>近 7 天</span><span id="week-target"></span></div>
+  <div class="card"><div class="week" id="week"></div></div>
+  <div class="label"><span>月曆</span><span>點日期看明細・可補記</span></div>
+  <div class="card">
+    <div class="cal-head">
+      <button class="cal-nav" id="cal-prev" aria-label="上個月">‹</button>
+      <b id="cal-title"></b>
+      <button class="cal-nav" id="cal-next" aria-label="下個月">›</button>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+    <div class="legend" id="legend"></div>
+  </div>
+  <div class="label"><span>本月統計</span></div>
+  <div class="card"><div class="stats" id="stats"></div></div>
+  <div class="label" id="detail-anchor"><span id="detail-title">尚未選擇日期</span></div>
+  <div class="card" id="detail-card">
+    <div id="detail-log"><div class="empty">點上方月曆的日期</div></div>
+    <div id="backfill" hidden style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+      <div class="hint" style="margin:0 0 8px">補記到這天：先選時段，再點食物（每點一次 +1 份）</div>
+      <div class="chips" id="bf-slots" style="margin-bottom:10px"></div>
+      <div class="chips" id="bf-foods"></div>
+    </div>
+  </div>
+</section>
+
+<section class="page" id="page-set">
+  <div class="page-top"></div>
+  <div class="label"><span>個人與目標</span></div>
+  <div class="card">
+    <div class="set-row"><span>體重 (kg)</span><input id="set-weight" type="number" inputmode="decimal" step="0.1"></div>
+    <div class="set-row"><span>保守目標 (g)<small>體重 × 1.6・增肌效益大致在此達到高原</small></span><input id="set-t1" type="number" inputmode="numeric"></div>
+    <div class="set-row"><span>推薦目標 (g)<small>體重 × 2.0</small></span><input id="set-t2" type="number" inputmode="numeric"></div>
+    <div class="set-row"><span>高目標 (g)<small>體重 × 2.2</small></span><input id="set-t3" type="number" inputmode="numeric"></div>
+    <div class="stack" style="margin-top:10px">
+      <button class="btn btn-gray" id="set-auto">依體重自動計算三個目標</button>
+      <button class="btn btn-blue" id="set-save">儲存</button>
+    </div>
+    <div class="hint">體脂偏高時，可改填「目標體重」來計算，數字會比較合理。</div>
+  </div>
+
+  <div class="label"><span>常用按鈕</span></div>
+  <div class="card">
+    <div class="seg" id="sort-seg">
+      <button data-sort="auto">依時段自動排序</button>
+      <button data-sort="manual">手動排序</button>
+    </div>
+    <div class="hint" id="sort-hint" style="margin:0 0 6px"></div>
+    <div id="food-manage"></div>
+    <button class="btn btn-gray" id="restore-presets" style="margin-top:10px">補回預設按鈕</button>
+  </div>
+
+  <div class="label"><span>Google 試算表同步</span></div>
+  <div class="card stack">
+    <input class="field" id="sync-url" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <input class="field" id="sync-token" type="password" placeholder="同步密碼（與 Apps Script 內的 TOKEN 相同）" autocomplete="off">
+    <div class="err" id="sync-err"></div>
+    <button class="btn btn-blue" id="sync-save">儲存並同步</button>
+    <button class="btn btn-gray" id="sync-now">立即同步</button>
+    <div class="hint" id="sync-status"></div>
+    <button class="btn btn-red" id="sync-off">停用同步</button>
+  </div>
+
+  <div class="label"><span>備份</span></div>
+  <div class="card stack">
+    <button class="btn btn-gray" id="bk-export">匯出備份檔 (JSON)</button>
+    <button class="btn btn-gray" id="bk-import">從備份檔還原</button>
+    <input type="file" id="bk-file" accept=".json,application/json" hidden>
+    <div class="hint" id="bk-info"></div>
+    <button class="btn btn-red" id="bk-reset">清除這支手機上的記錄</button>
+  </div>
+  <div class="hint" style="padding:12px 4px 20px">資料會先存在這支手機。請用 Safari「分享 → 加入主畫面」開啟，避免 Safari 在 7 天沒開啟後自動清除資料；開啟試算表同步後，換手機也能找回全部紀錄。</div>
+</section>
+
+<nav class="tabbar">
+  <button class="tab active" data-page="page-input"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>記錄</button>
+  <button class="tab" data-page="page-today"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9"/><path d="M12 3a9 9 0 0 1 9 9h-9z"/></svg>今日</button>
+  <button class="tab" data-page="page-cal"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>日曆</button>
+  <button class="tab" data-page="page-set"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>設定</button>
+</nav>
+
+<div class="toast" id="toast" role="status" aria-live="polite"><div class="toast-msg" id="toast-msg"></div><button class="toast-undo" id="toast-undo" hidden>復原</button></div>
+
+<script>
+const STORE_KEY = 'proteinTracker.v1';
+const SLOTS = ['早上', '中午', '下午', '晚上'];
+const TIER_NAMES = ['未達標', '保守', '推薦', '高'];
+const TARGET_NAMES = ['保守', '推薦', '高'];
+const WEEKDAYS = '日一二三四五六';
+const PRESETS = [
+  { id: 'whey', name: '乳清', unit: '1 匙', g: 24 },
+  { id: 'egg', name: '雞蛋', unit: '1 顆', g: 7 },
+  { id: 'soy', name: '無糖豆漿', unit: '1 瓶 400ml', g: 14 },
+  { id: 'chicken', name: '雞胸肉', unit: '1 份 100g', g: 31 },
+  { id: 'fish', name: '魚肉', unit: '1 份 100g', g: 22 },
+  { id: 'milk', name: '鮮奶', unit: '1 杯 240ml', g: 8 },
+  { id: 'yogurt', name: '希臘優格', unit: '1 盒 150g', g: 15 },
+  { id: 'tofu', name: '板豆腐', unit: '半盒 150g', g: 12 },
+];
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const pad = n => String(n).padStart(2, '0');
+const dayKey = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const todayKey = () => dayKey(new Date());
+const nowHM = () => { const d = new Date(); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+const fmtG = n => String(Math.round(n * 10) / 10);
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+
+function defaultState() {
+  return {
+    weight: 97,
+    targets: [155, 194, 213],
+    foods: PRESETS.map(f => ({ ...f, custom: false })),
+    sortMode: 'auto',
+    records: {},
+    pending: [],
+    configUpdatedAt: 0,
+    sync: { url: '', token: '', lastSync: '', lastError: '' },
+    lastBackup: '',
+  };
+}
+
+let memoryStore = null;
+function readStore() { try { return localStorage.getItem(STORE_KEY); } catch (e) { return memoryStore; } }
+function writeStore(v) { try { localStorage.setItem(STORE_KEY, v); } catch (e) { memoryStore = v; } }
+function save() { writeStore(JSON.stringify(state)); }
+
+function normalize(s) {
+  const d = defaultState();
+  const st = Object.assign(d, s);
+  st.sync = Object.assign(defaultState().sync, s.sync || {});
+  st.pending = Array.isArray(st.pending) ? st.pending : [];
+  for (const k in st.records) {
+    st.records[k] = (st.records[k] || []).map(r => ({ ...r, id: String(r.id), date: k }));
+  }
+  return st;
+}
+
+let state = defaultState();
+try { const raw = readStore(); if (raw) state = normalize(JSON.parse(raw)); } catch (e) {}
+
+const dayRecords = key => state.records[key] || [];
+const dayTotal = key => dayRecords(key).reduce((s, r) => s + Number(r.g || 0), 0);
+const tierOf = g => g >= state.targets[2] ? 3 : g >= state.targets[1] ? 2 : g >= state.targets[0] ? 1 : 0;
+const tierColor = t => ['var(--blue)', 'var(--orange)', 'var(--green)', 'var(--green)'][t];
+
+function autoSlot() { const h = new Date().getHours(); return h < 11 ? '早上' : h < 14 ? '中午' : h < 18 ? '下午' : '晚上'; }
+let currentSlot = autoSlot();
+
+/* ---------- 資料操作（每個變更都排入同步佇列） ---------- */
+function queue(op) {
+  op.opId = uid();
+  if (op.type === 'config') state.pending = state.pending.filter(o => o.type !== 'config');
+  state.pending.push(op);
+  save();
+  scheduleSync();
+}
+function configOf() {
+  return { weight: state.weight, targets: state.targets, foods: state.foods, sortMode: state.sortMode, updatedAt: state.configUpdatedAt };
+}
+function configChanged() {
+  state.configUpdatedAt = Date.now();
+  queue({ type: 'config', config: configOf() });
+}
+function addRecord(food, key = todayKey(), slot = currentSlot, time = nowHM()) {
+  const rec = { id: uid(), date: key, time, slot, foodId: food.id, name: food.name, unit: food.unit, g: food.g };
+  (state.records[key] = state.records[key] || []).push(rec);
+  queue({ type: 'add', rec });
+  return rec;
+}
+function restoreRecord(rec) {
+  (state.records[rec.date] = state.records[rec.date] || []).push(rec);
+  queue({ type: 'add', rec });
+}
+function removeRecord(key, id) {
+  const list = dayRecords(key);
+  const i = list.findIndex(r => r.id === id);
+  if (i < 0) return null;
+  const [rec] = list.splice(i, 1);
+  if (!list.length) delete state.records[key];
+  queue({ type: 'del', id });
+  return rec;
+}
+function removeLastOf(foodId, key = todayKey()) {
+  const list = dayRecords(key);
+  for (let i = list.length - 1; i >= 0; i--) if (list[i].foodId === foodId) return removeRecord(key, list[i].id);
+  return null;
+}
+function statusText() {
+  const total = dayTotal(todayKey());
+  const i = state.targets.findIndex(t => total < t);
+  return i < 0 ? `今日 ${fmtG(total)}g，三個目標全部達成` : `今日 ${fmtG(total)}g，距${TARGET_NAMES[i]} ${state.targets[i]}g 還差 ${fmtG(state.targets[i] - total)}g`;
+}
+
+/* ---------- 提示 ---------- */
+let toastTimer, undoFn = null;
+function toast(msg, undo) {
+  $('toast-msg').textContent = msg;
+  undoFn = undo || null;
+  $('toast-undo').hidden = !undo;
+  $('toast').classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { $('toast').classList.remove('show'); undoFn = null; }, undo ? 4000 : 2500);
+}
+$('toast-undo').onclick = () => {
+  if (undoFn) undoFn();
+  undoFn = null;
+  $('toast').classList.remove('show');
+  renderAll();
+};
+
+/* ---------- 記錄頁 ---------- */
+let foodOrder = [];
+function computeOrder() {
+  if (state.sortMode === 'manual') { foodOrder = state.foods.map(f => f.id); return; }
+  const since = dayKey(new Date(Date.now() - 30 * 864e5));
+  const score = {};
+  for (const k in state.records) {
+    if (k < since) continue;
+    for (const r of state.records[k]) score[r.foodId] = (score[r.foodId] || 0) + (r.slot === currentSlot ? 3 : 1);
+  }
+  foodOrder = state.foods.map((f, i) => ({ id: f.id, i, s: score[f.id] || 0 })).sort((a, b) => b.s - a.s || a.i - b.i).map(x => x.id);
+}
+function orderedFoods() {
+  const byId = new Map(state.foods.map(f => [f.id, f]));
+  const list = foodOrder.map(id => byId.get(id)).filter(Boolean);
+  state.foods.forEach(f => { if (!list.includes(f)) list.push(f); });
+  return list;
+}
+
+function renderSummary() {
+  const total = dayTotal(todayKey());
+  const max = state.targets[2] * 1.1;
+  const i = state.targets.findIndex(t => total < t);
+  const left = i < 0 ? '<b style="color:var(--green)">全部達標</b>' : `距${TARGET_NAMES[i]} ${state.targets[i]}g<br><b>還差 ${fmtG(state.targets[i] - total)}g</b>`;
+  const n = dayRecords(todayKey()).length;
+  $('summary').innerHTML = `
+    <div class="summary-top">
+      <div><div class="summary-big">${fmtG(total)}<small> g</small></div><div class="summary-sub">今天 ${n} 筆・${TIER_NAMES[tierOf(total)]}${tierOf(total) ? '達標' : ''}</div></div>
+      <div class="summary-left">${left}</div>
+    </div>
+    <div class="bar">
+      <div class="bar-fill" style="width:${Math.min(100, total / max * 100)}%;background:${tierColor(tierOf(total))}"></div>
+      ${state.targets.map((t, k) => {
+        const pos = t / max * 100;
+        return `<div class="bar-mark ${total >= t ? 'hit' : ''} ${k === 1 ? 'up' : ''} ${pos > 85 ? 'end' : ''}" style="left:${pos}%"><span>${TARGET_NAMES[k]} ${t}</span></div>`;
+      }).join('')}
+    </div>`;
+  $('slots').innerHTML = SLOTS.map(s => `<button class="slot ${s === currentSlot ? 'active' : ''}" data-slot="${s}">${s}</button>`).join('');
+  $('order-hint').textContent = state.sortMode === 'auto' ? `依${currentSlot}常吃排序` : '';
+}
+$('slots').addEventListener('click', e => {
+  const b = e.target.closest('[data-slot]');
+  if (!b || b.dataset.slot === currentSlot) return;
+  currentSlot = b.dataset.slot;
+  computeOrder();
+  renderSummary();
+  renderFoods();
+});
+
+function renderFoods() {
+  const list = dayRecords(todayKey());
+  const foods = orderedFoods();
+  $('foods').innerHTML = foods.length ? foods.map(f => {
+    const n = list.filter(r => r.foodId === f.id).length;
+    return `<div class="food" data-id="${esc(f.id)}">
+      <button class="food-minus" data-act="minus" aria-label="${esc(f.name)} 減 1 份">−</button>
+      <button class="food-plus" data-act="plus" aria-label="${esc(f.name)} 加 1 份">
+        <span class="food-name">${esc(f.name)}</span>
+        <span class="food-unit">${esc(f.unit)}<br>${fmtG(f.g)}g</span>
+      </button>
+      <span class="food-plus-icon">+</span>
+      ${n ? `<span class="food-count">${n}</span>` : ''}
+    </div>`;
+  }).join('') : '<div class="empty full">沒有常用按鈕，可到設定補回預設</div>';
+}
+$('foods').addEventListener('click', e => {
+  const btn = e.target.closest('[data-act]');
+  if (!btn) return;
+  const id = btn.closest('.food').dataset.id;
+  const food = state.foods.find(f => f.id === id);
+  if (!food) return;
+  if (btn.dataset.act === 'plus') {
+    const rec = addRecord(food);
+    renderAll();
+    toast(`${rec.time} ${rec.slot}｜${food.name} +${fmtG(food.g)}g\n${statusText()}`, () => removeRecord(rec.date, rec.id));
+  } else {
+    const rec = removeLastOf(food.id);
+    renderAll();
+    toast(rec ? `${food.name} −1 份（−${fmtG(rec.g)}g）\n${statusText()}` : `今天還沒有記錄${food.name}`, rec ? () => restoreRecord(rec) : null);
+  }
+  const el = $('foods').querySelector(`.food[data-id="${CSS.escape(id)}"]`);
+  if (el) el.classList.add('pop');
+});
+
+$('new-add').onclick = () => {
+  const name = $('new-name').value.trim();
+  const unit = $('new-unit').value.trim() || '1 份';
+  const g = parseFloat($('new-g').value);
+  if (!name) { $('new-err').textContent = '請輸入食物名稱'; return; }
+  if (!(g > 0 && g <= 200)) { $('new-err').textContent = '請輸入每份蛋白質 g 數（0.5–200）'; return; }
+  let food = state.foods.find(f => f.name === name && f.unit === unit);
+  if (food) food.g = g;
+  else { food = { id: 'c' + uid(), name, unit, g, custom: true }; state.foods.push(food); }
+  configChanged();
+  computeOrder();
+  const rec = addRecord(food);
+  $('new-name').value = $('new-unit').value = $('new-g').value = '';
+  renderAll();
+  toast(`已加入常用：${name}\n${rec.time} ${rec.slot} +${fmtG(g)}g｜${statusText()}`, () => removeRecord(rec.date, rec.id));
+};
+['new-name', 'new-unit', 'new-g'].forEach(id => $(id).addEventListener('input', () => { $('new-err').textContent = ''; }));
+
+/* ---------- 今日頁 ---------- */
+function logHtml(key) {
+  const list = dayRecords(key).slice().sort((a, b) => SLOTS.indexOf(a.slot) - SLOTS.indexOf(b.slot) || String(a.time).localeCompare(String(b.time)));
+  if (!list.length) return '<div class="empty">沒有記錄</div>';
+  return list.map(r => `
+    <div class="log">
+      <span class="log-time">${esc(r.time)}<br>${esc(r.slot)}</span>
+      <span class="log-name">${esc(r.name)}<br><small>${esc(r.unit)}</small></span>
+      <span class="log-g">+${fmtG(r.g)}g</span>
+      <button class="log-del" data-key="${esc(key)}" data-id="${esc(r.id)}" aria-label="刪除">×</button>
+    </div>`).join('');
+}
+
+function streak() {
+  let n = 0;
+  const d = new Date();
+  if (dayTotal(dayKey(d)) < state.targets[1]) d.setDate(d.getDate() - 1);
+  while (dayTotal(dayKey(d)) >= state.targets[1]) { n++; d.setDate(d.getDate() - 1); }
+  return n;
+}
+
+function renderToday() {
+  const k = todayKey();
+  const total = dayTotal(k);
+  const now = new Date();
+  const s = streak();
+  $('today-title').textContent = `${now.getMonth() + 1} 月 ${now.getDate()} 日（${WEEKDAYS[now.getDay()]}）`;
+  $('today-streak').textContent = s ? `連續達推薦 ${s} 天` : '';
+
+  const R = 88, C = 2 * Math.PI * R, max = state.targets[2];
+  const pct = Math.min(1, total / max);
+  const color = ['#0a84ff', '#ff9f0a', '#30b158', '#30b158'][tierOf(total)];
+  const ticks = state.targets.map(t => {
+    const a = Math.min(1, t / max) * 2 * Math.PI - Math.PI / 2;
+    const p = r => [110 + Math.cos(a) * r, 110 + Math.sin(a) * r].map(v => v.toFixed(1));
+    const [x1, y1] = p(74), [x2, y2] = p(102);
+    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${total >= t ? '#30b158' : '#a1a1a6'}" stroke-width="3" stroke-linecap="round"/>`;
+  }).join('');
+  $('ring').innerHTML = `<svg viewBox="0 0 220 220" width="210" height="210" role="img" aria-label="今日 ${fmtG(total)} 克">
+    <circle cx="110" cy="110" r="${R}" fill="none" stroke="var(--card2)" stroke-width="16"/>
+    <circle cx="110" cy="110" r="${R}" fill="none" stroke="${color}" stroke-width="16" stroke-linecap="round"
+      stroke-dasharray="${(C * pct).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 110 110)" style="transition:stroke-dasharray .4s"/>
+    ${ticks}
+    <text x="110" y="114" text-anchor="middle" class="ring-center">${fmtG(total)}g</text>
+    <text x="110" y="140" text-anchor="middle" class="ring-sub">${TIER_NAMES[tierOf(total)]}${tierOf(total) ? '達標' : ''}</text>
+  </svg>`;
+  $('tiers').innerHTML = state.targets.map((t, i) => {
+    const hit = total >= t;
+    return `<div class="tier ${hit ? 'hit' : ''}"><span>${TARGET_NAMES[i]}</span><b>${t}g</b><em>${hit ? '已達成' : '差 ' + fmtG(t - total) + 'g'}</em></div>`;
+  }).join('');
+  const list = dayRecords(k);
+  $('slotsum').innerHTML = SLOTS.map(sl => `<div>${sl}<b>${fmtG(list.filter(r => r.slot === sl).reduce((a, r) => a + Number(r.g), 0))}</b></div>`).join('');
+  $('today-log').innerHTML = logHtml(k);
+}
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('.log-del');
+  if (!b) return;
+  const rec = removeRecord(b.dataset.key, b.dataset.id);
+  if (!rec) return;
+  renderAll();
+  toast(`已刪除 ${rec.name}（−${fmtG(rec.g)}g）`, () => restoreRecord(rec));
+});
+
+/* ---------- 日曆頁 ---------- */
+const calMonth = new Date(); calMonth.setDate(1);
+let selectedDay = null;
+let backfillSlot = '晚上';
+
+function renderWeek() {
+  const days = [];
+  for (let i = 6; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); days.push(d); }
+  const vals = days.map(d => dayTotal(dayKey(d)));
+  const max = Math.max(state.targets[2] * 1.1, ...vals);
+  const H = 120;
+  $('week-target').textContent = `虛線 = 推薦 ${state.targets[1]}g`;
+  $('week').innerHTML = days.map((d, i) => `
+    <div class="week-col">
+      <span class="week-val">${vals[i] ? Math.round(vals[i]) : ''}</span>
+      <div class="week-bar" style="height:${Math.max(3, vals[i] / max * H)}px;background:${vals[i] ? tierColor(tierOf(vals[i])) : 'var(--card2)'}"></div>
+      <span class="week-day">${i === 6 ? '今天' : WEEKDAYS[d.getDay()]}</span>
+    </div>`).join('') + `<div class="week-line" style="bottom:${state.targets[1] / max * H + 19}px"></div>`;
+}
+
+function renderCalendar() {
+  const y = calMonth.getFullYear(), m = calMonth.getMonth();
+  $('cal-title').textContent = `${y} 年 ${m + 1} 月`;
+  const first = new Date(y, m, 1).getDay();
+  const n = new Date(y, m + 1, 0).getDate();
+  const tk = todayKey();
+  let html = WEEKDAYS.split('').map(w => `<div class="cal-wd">${w}</div>`).join('');
+  for (let i = 0; i < first; i++) html += '<div class="cal-day blank"></div>';
+  let logged = 0, hit = 0, sum = 0, best = 0;
+  for (let d = 1; d <= n; d++) {
+    const k = `${y}-${pad(m + 1)}-${pad(d)}`;
+    const has = dayRecords(k).length > 0;
+    const g = dayTotal(k);
+    if (has) { logged++; sum += g; best = Math.max(best, g); if (g >= state.targets[1]) hit++; }
+    const cls = [has ? 't' + tierOf(g) : '', k === tk ? 'today' : '', k === selectedDay ? 'sel' : '', k > tk ? 'future' : ''].join(' ');
+    html += `<button class="cal-day ${cls}" data-day="${k}">${d}${has ? `<small>${Math.round(g)}</small>` : ''}</button>`;
+  }
+  $('cal-grid').innerHTML = html;
+  $('legend').innerHTML = [['var(--t0)', '未達保守'], ['var(--t1)', '保守'], ['var(--t2)', '推薦'], ['var(--green)', '高']]
+    .map(([c, t]) => `<span><i style="background:${c}"></i>${t}</span>`).join('');
+  $('stats').innerHTML = `
+    <div class="stat"><span>記錄天數</span><b>${logged} 天</b></div>
+    <div class="stat"><span>達推薦天數</span><b>${hit} 天</b></div>
+    <div class="stat"><span>平均每日</span><b>${logged ? fmtG(sum / logged) : 0}g</b></div>
+    <div class="stat"><span>最高一天</span><b>${fmtG(best)}g</b></div>
+    <div class="stat"><span>目前連續達推薦</span><b>${streak()} 天</b></div>
+    <div class="stat"><span>達標率</span><b>${logged ? Math.round(hit / logged * 100) : 0}%</b></div>`;
+  renderDetail();
+}
+
+function renderDetail() {
+  if (!selectedDay) return;
+  const [, m, d] = selectedDay.split('-').map(Number);
+  const wd = WEEKDAYS[new Date(selectedDay + 'T12:00:00').getDay()];
+  $('detail-title').textContent = `${m} 月 ${d} 日（${wd}）明細・共 ${fmtG(dayTotal(selectedDay))}g`;
+  $('detail-log').innerHTML = logHtml(selectedDay);
+  const canBackfill = selectedDay <= todayKey();
+  $('backfill').hidden = !canBackfill;
+  if (!canBackfill) return;
+  $('bf-slots').innerHTML = SLOTS.map(s => `<button class="chip ${s === backfillSlot ? 'active' : ''}" data-bf-slot="${s}">${s}</button>`).join('');
+  $('bf-foods').innerHTML = state.foods.map(f => `<button class="chip" data-bf-food="${esc(f.id)}">${esc(f.name)} ${fmtG(f.g)}g</button>`).join('');
+}
+
+$('cal-grid').addEventListener('click', e => {
+  const b = e.target.closest('[data-day]');
+  if (!b) return;
+  selectedDay = b.dataset.day;
+  renderCalendar();
+  $('detail-anchor').scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+$('backfill').addEventListener('click', e => {
+  const s = e.target.closest('[data-bf-slot]');
+  if (s) { backfillSlot = s.dataset.bfSlot; renderDetail(); return; }
+  const f = e.target.closest('[data-bf-food]');
+  if (!f || !selectedDay) return;
+  const food = state.foods.find(x => x.id === f.dataset.bfFood);
+  if (!food) return;
+  const rec = addRecord(food, selectedDay, backfillSlot, '補記');
+  renderAll();
+  toast(`已補記 ${backfillSlot}｜${food.name} +${fmtG(food.g)}g`, () => removeRecord(rec.date, rec.id));
+});
+$('cal-prev').onclick = () => { calMonth.setMonth(calMonth.getMonth() - 1); renderCalendar(); };
+$('cal-next').onclick = () => { calMonth.setMonth(calMonth.getMonth() + 1); renderCalendar(); };
+
+/* ---------- 設定頁 ---------- */
+function setVal(id, v) { const el = $(id); if (document.activeElement !== el) el.value = v; }
+
+function renderSettings() {
+  setVal('set-weight', state.weight);
+  [1, 2, 3].forEach(i => setVal('set-t' + i, state.targets[i - 1]));
+  document.querySelectorAll('#sort-seg button').forEach(b => b.classList.toggle('active', b.dataset.sort === state.sortMode));
+  $('sort-hint').textContent = state.sortMode === 'auto' ? '記錄頁會把「這個時段最近 30 天最常吃的」排前面，切換時段時才重排，不會在你連按時跳動。' : '用 ↑ ↓ 調整記錄頁的按鈕順序。';
+  const manual = state.sortMode === 'manual';
+  if (!$('food-manage').contains(document.activeElement)) {
+    $('food-manage').innerHTML = state.foods.map((f, i) => `
+      <div class="fm" data-fid="${esc(f.id)}">
+        ${manual ? `<button class="fm-move" data-move="-1" ${i === 0 ? 'disabled' : ''} aria-label="上移">↑</button><button class="fm-move" data-move="1" ${i === state.foods.length - 1 ? 'disabled' : ''} aria-label="下移">↓</button>` : ''}
+        <span class="log-name">${esc(f.name)}<br><small>${esc(f.unit)}${f.custom ? '・自訂' : ''}</small></span>
+        <input type="number" inputmode="decimal" step="0.5" value="${fmtG(f.g)}" data-edit-g aria-label="${esc(f.name)} 每份蛋白質"><span class="fm-g">g</span>
+        <button class="log-del" data-remove-food aria-label="移除 ${esc(f.name)}">×</button>
+      </div>`).join('') || '<div class="empty">沒有常用按鈕</div>';
+  }
+  setVal('sync-url', state.sync.url);
+  setVal('sync-token', state.sync.token);
+  renderSyncStatus();
+  $('bk-info').textContent = state.lastBackup ? `上次匯出：${state.lastBackup}` : '尚未匯出過備份';
+}
+
+$('set-auto').onclick = () => {
+  const w = parseFloat($('set-weight').value);
+  if (!(w > 30 && w < 300)) { toast('請先輸入正確體重'); return; }
+  [1.6, 2.0, 2.2].forEach((r, i) => { $('set-t' + (i + 1)).value = Math.round(w * r); });
+};
+$('set-save').onclick = () => {
+  const w = parseFloat($('set-weight').value);
+  const t = [1, 2, 3].map(i => parseInt($('set-t' + i).value, 10));
+  if (!(w > 30 && w < 300) || t.some(x => !(x > 0)) || !(t[0] <= t[1] && t[1] <= t[2])) {
+    toast('請確認體重與目標（保守 ≤ 推薦 ≤ 高）');
+    return;
+  }
+  state.weight = w; state.targets = t;
+  configChanged(); renderAll(); toast('已儲存');
+};
+$('sort-seg').addEventListener('click', e => {
+  const b = e.target.closest('[data-sort]');
+  if (!b || b.dataset.sort === state.sortMode) return;
+  state.sortMode = b.dataset.sort;
+  configChanged(); computeOrder(); renderAll();
+});
+$('food-manage').addEventListener('click', e => {
+  const row = e.target.closest('.fm');
+  if (!row) return;
+  const i = state.foods.findIndex(f => f.id === row.dataset.fid);
+  if (i < 0) return;
+  const mv = e.target.closest('[data-move]');
+  if (mv) {
+    const j = i + Number(mv.dataset.move);
+    if (j < 0 || j >= state.foods.length) return;
+    [state.foods[i], state.foods[j]] = [state.foods[j], state.foods[i]];
+    configChanged(); computeOrder(); renderAll();
+    return;
+  }
+  if (e.target.closest('[data-remove-food]')) {
+    const f = state.foods[i];
+    if (!confirm(`從常用按鈕移除「${f.name}」？已記錄的資料不受影響。`)) return;
+    state.foods.splice(i, 1);
+    configChanged(); computeOrder(); renderAll();
+  }
+});
+$('food-manage').addEventListener('change', e => {
+  if (!e.target.matches('[data-edit-g]')) return;
+  const f = state.foods.find(x => x.id === e.target.closest('.fm').dataset.fid);
+  const g = parseFloat(e.target.value);
+  if (!f) return;
+  if (!(g > 0 && g <= 200)) { e.target.value = fmtG(f.g); toast('每份蛋白質需在 0.5–200g'); return; }
+  f.g = g;
+  configChanged();
+  e.target.blur();
+  renderAll();
+  toast(`${f.name} 改為每份 ${fmtG(g)}g（之後的記錄才會套用）`);
+});
+$('restore-presets').onclick = () => {
+  let added = 0;
+  PRESETS.forEach(p => { if (!state.foods.some(f => f.id === p.id)) { state.foods.push({ ...p, custom: false }); added++; } });
+  if (!added) { toast('預設按鈕都在'); return; }
+  configChanged(); computeOrder(); renderAll(); toast(`已補回 ${added} 個預設按鈕`);
+};
+
+/* ---------- Google 試算表同步 ---------- */
+let syncing = false, syncTimer = null;
+
+function renderSyncStatus(text) {
+  const s = state.sync;
+  let dot = '', msg;
+  if (text) { dot = 'wait'; msg = text; }
+  else if (!s.url) { msg = '尚未設定。設定方式請看 SETUP.md。'; }
+  else if (s.lastError) { dot = 'bad'; msg = `同步失敗：${s.lastError}（待上傳 ${state.pending.length} 筆，連上網路後會自動重試）`; }
+  else if (state.pending.length) { dot = 'wait'; msg = `待上傳 ${state.pending.length} 筆`; }
+  else { dot = 'ok'; msg = `已同步${s.lastSync ? '・' + s.lastSync : ''}`; }
+  $('sync-status').innerHTML = `<span class="dot ${dot}"></span>${esc(msg)}`;
+}
+
+function scheduleSync(delay = 1500) {
+  if (!state.sync.url || !state.sync.token) return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(() => runSync(false), delay);
+}
+
+function mergeServer(data) {
+  if (Array.isArray(data.records)) {
+    const recs = {};
+    data.records.forEach(r => {
+      if (!r || !r.id || !r.date) return;
+      (recs[r.date] = recs[r.date] || []).push({ id: String(r.id), date: r.date, time: r.time, slot: r.slot, foodId: r.foodId, name: r.name, unit: r.unit, g: Number(r.g) || 0 });
+    });
+    state.pending.forEach(op => {
+      if (op.type === 'add') {
+        const l = (recs[op.rec.date] = recs[op.rec.date] || []);
+        if (!l.some(x => x.id === op.rec.id)) l.push(op.rec);
+      } else if (op.type === 'del') {
+        for (const k in recs) { recs[k] = recs[k].filter(x => x.id !== op.id); if (!recs[k].length) delete recs[k]; }
+      }
+    });
+    state.records = recs;
+  }
+  const c = data.config;
+  if (c && Number(c.updatedAt) > state.configUpdatedAt && !state.pending.some(o => o.type === 'config')) {
+    if (typeof c.weight === 'number') state.weight = c.weight;
+    if (Array.isArray(c.targets) && c.targets.length === 3) state.targets = c.targets.map(Number);
+    if (Array.isArray(c.foods)) state.foods = c.foods;
+    if (c.sortMode === 'auto' || c.sortMode === 'manual') state.sortMode = c.sortMode;
+    state.configUpdatedAt = Number(c.updatedAt);
+    computeOrder();
+  }
+}
+
+async function runSync(manual) {
+  const s = state.sync;
+  if (!s.url || !s.token) { if (manual) toast('請先填入同步網址與密碼'); return; }
+  if (syncing) return;
+  syncing = true;
+  renderSyncStatus('同步中…');
+  const ops = state.pending.slice();
+  try {
+    const res = await fetch(s.url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ token: s.token, ops }) });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error === 'token' ? '同步密碼不正確' : (data.error || '伺服器錯誤'));
+    const applied = new Set(data.applied || []);
+    state.pending = state.pending.filter(op => !applied.has(op.opId));
+    mergeServer(data);
+    s.lastSync = new Date().toLocaleString('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    s.lastError = '';
+    save();
+    if (manual) toast('同步完成');
+  } catch (err) {
+    s.lastError = err && err.message && !/fetch|network|load failed/i.test(err.message) ? err.message : '連不上，請檢查網路或網址';
+    save();
+    if (manual) toast(s.lastError);
+  } finally {
+    syncing = false;
+    renderAll();
+  }
+  if (!s.lastError && state.pending.length) scheduleSync(300);
+}
+
+$('sync-save').onclick = () => {
+  const url = $('sync-url').value.trim();
+  const token = $('sync-token').value.trim();
+  if (!/^https:\/\/script\.google(usercontent)?\.com\/.+/.test(url)) { $('sync-err').textContent = '網址應以 https://script.google.com/ 開頭'; return; }
+  if (token.length < 6) { $('sync-err').textContent = '同步密碼至少 6 個字'; return; }
+  $('sync-err').textContent = '';
+  const changed = url !== state.sync.url || token !== state.sync.token;
+  state.sync.url = url; state.sync.token = token; state.sync.lastError = '';
+  if (changed) {
+    const queued = new Set(state.pending.filter(o => o.type === 'add').map(o => o.rec.id));
+    for (const k in state.records) for (const r of state.records[k]) if (!queued.has(r.id)) state.pending.push({ opId: uid(), type: 'add', rec: r });
+    if (state.configUpdatedAt) {
+      state.pending = state.pending.filter(o => o.type !== 'config');
+      state.pending.push({ opId: uid(), type: 'config', config: configOf() });
+    }
+  }
+  save();
+  runSync(true);
+};
+$('sync-now').onclick = () => runSync(true);
+$('sync-off').onclick = () => {
+  if (!state.sync.url) { toast('目前沒有啟用同步'); return; }
+  if (!confirm('停用同步？手機上的記錄會保留，試算表上的資料也不會被刪除。')) return;
+  state.sync = defaultState().sync;
+  state.pending = [];
+  save(); renderAll(); toast('已停用同步');
+};
+['sync-url', 'sync-token'].forEach(id => $(id).addEventListener('input', () => { $('sync-err').textContent = ''; }));
+window.addEventListener('online', () => scheduleSync(0));
+
+/* ---------- 備份 ---------- */
+$('bk-export').onclick = () => {
+  const data = { ...state, sync: { ...state.sync, token: '' }, pending: [] };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `protein-backup-${todayKey()}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  state.lastBackup = new Date().toLocaleString('zh-TW');
+  save(); renderSettings();
+};
+$('bk-import').onclick = () => $('bk-file').click();
+$('bk-file').onchange = e => {
+  const file = e.target.files[0];
+  e.target.value = '';
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      if (!data || typeof data.records !== 'object' || !Array.isArray(data.foods)) throw new Error();
+      if (!confirm('還原會用備份檔取代這支手機上的資料，確定？')) return;
+      const keepSync = state.sync;
+      state = normalize(data);
+      state.sync = keepSync;
+      state.pending = [];
+      if (keepSync.url) {
+        for (const k in state.records) for (const r of state.records[k]) state.pending.push({ opId: uid(), type: 'add', rec: r });
+        state.configUpdatedAt = Date.now();
+        state.pending.push({ opId: uid(), type: 'config', config: configOf() });
+      }
+      save(); computeOrder(); renderAll(); scheduleSync(0);
+      toast('已從備份還原');
+    } catch (err) { toast('檔案格式不正確，無法還原'); }
+  };
+  reader.readAsText(file);
+};
+$('bk-reset').onclick = () => {
+  const msg = state.sync.url ? '清除這支手機上的記錄？試算表上的資料會保留，下次同步會再下載回來。' : '清除所有記錄？這個動作無法復原（常用按鈕與目標會保留）。';
+  if (!confirm(msg)) return;
+  state.records = {};
+  state.pending = state.pending.filter(o => o.type === 'config');
+  save(); renderAll(); toast('記錄已清除');
+};
+
+/* ---------- 導覽與啟動 ---------- */
+document.querySelector('.tabbar').addEventListener('click', e => {
+  const t = e.target.closest('.tab');
+  if (!t) return;
+  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('active', x === t));
+  document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === t.dataset.page));
+  window.scrollTo(0, 0);
+  renderAll();
+});
+
+function renderAll() {
+  renderSummary(); renderFoods(); renderToday(); renderWeek(); renderCalendar(); renderSettings();
+}
+
+let lastDay = todayKey();
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible') return;
+  if (todayKey() !== lastDay) { lastDay = todayKey(); currentSlot = autoSlot(); computeOrder(); renderAll(); }
+  scheduleSync(0);
+});
+
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+
+computeOrder();
+renderAll();
+scheduleSync(0);
+</script>
+</body>
+</html>
