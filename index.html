@@ -263,7 +263,6 @@
   <div class="label"><span>Google 試算表同步</span></div>
   <div class="card stack">
     <input class="field" id="sync-url" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off" autocapitalize="off" spellcheck="false">
-    <input class="field" id="sync-token" type="password" placeholder="同步密碼（與 Apps Script 內的 TOKEN 相同）" autocomplete="off">
     <div class="err" id="sync-err"></div>
     <button class="btn btn-blue" id="sync-save">儲存並同步</button>
     <button class="btn btn-gray" id="sync-now">立即同步</button>
@@ -326,7 +325,7 @@ function defaultState() {
     records: {},
     pending: [],
     configUpdatedAt: 0,
-    sync: { url: '', token: '', lastSync: '', lastError: '' },
+    sync: { url: '', lastSync: '', lastError: '' },
     lastBackup: '',
   };
 }
@@ -689,7 +688,6 @@ function renderSettings() {
       </div>`).join('') || '<div class="empty">沒有常用按鈕</div>';
   }
   setVal('sync-url', state.sync.url);
-  setVal('sync-token', state.sync.token);
   renderSyncStatus();
   $('bk-info').textContent = state.lastBackup ? `上次匯出：${state.lastBackup}` : '尚未匯出過備份';
 }
@@ -769,7 +767,7 @@ function renderSyncStatus(text) {
 }
 
 function scheduleSync(delay = 1500) {
-  if (!state.sync.url || !state.sync.token) return;
+  if (!state.sync.url) return;
   clearTimeout(syncTimer);
   syncTimer = setTimeout(() => runSync(false), delay);
 }
@@ -804,16 +802,16 @@ function mergeServer(data) {
 
 async function runSync(manual) {
   const s = state.sync;
-  if (!s.url || !s.token) { if (manual) toast('請先填入同步網址與密碼'); return; }
+  if (!s.url) { if (manual) toast('請先填入同步網址'); return; }
   if (syncing) return;
   syncing = true;
   renderSyncStatus('同步中…');
   const ops = state.pending.slice();
   try {
-    const res = await fetch(s.url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ token: s.token, ops }) });
+    const res = await fetch(s.url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ ops }) });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
-    if (!data.ok) throw new Error(data.error === 'token' ? '同步密碼不正確' : (data.error || '伺服器錯誤'));
+    if (!data.ok) throw new Error(data.error || '伺服器錯誤');
     const applied = new Set(data.applied || []);
     state.pending = state.pending.filter(op => !applied.has(op.opId));
     mergeServer(data);
@@ -834,12 +832,10 @@ async function runSync(manual) {
 
 $('sync-save').onclick = () => {
   const url = $('sync-url').value.trim();
-  const token = $('sync-token').value.trim();
   if (!/^https:\/\/script\.google(usercontent)?\.com\/.+/.test(url)) { $('sync-err').textContent = '網址應以 https://script.google.com/ 開頭'; return; }
-  if (token.length < 6) { $('sync-err').textContent = '同步密碼至少 6 個字'; return; }
   $('sync-err').textContent = '';
-  const changed = url !== state.sync.url || token !== state.sync.token;
-  state.sync.url = url; state.sync.token = token; state.sync.lastError = '';
+  const changed = url !== state.sync.url;
+  state.sync.url = url; state.sync.lastError = '';
   if (changed) {
     const queued = new Set(state.pending.filter(o => o.type === 'add').map(o => o.rec.id));
     for (const k in state.records) for (const r of state.records[k]) if (!queued.has(r.id)) state.pending.push({ opId: uid(), type: 'add', rec: r });
@@ -859,12 +855,12 @@ $('sync-off').onclick = () => {
   state.pending = [];
   save(); renderAll(); toast('已停用同步');
 };
-['sync-url', 'sync-token'].forEach(id => $(id).addEventListener('input', () => { $('sync-err').textContent = ''; }));
+$('sync-url').addEventListener('input', () => { $('sync-err').textContent = ''; });
 window.addEventListener('online', () => scheduleSync(0));
 
 /* ---------- 備份 ---------- */
 $('bk-export').onclick = () => {
-  const data = { ...state, sync: { ...state.sync, token: '' }, pending: [] };
+  const data = { ...state, sync: { ...state.sync, url: '' }, pending: [] };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);

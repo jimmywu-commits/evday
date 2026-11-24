@@ -1,12 +1,19 @@
 // 蛋白質追蹤 ↔ Google 試算表同步
-// 貼到試算表的「擴充功能 → Apps Script」，改好 TOKEN 後部署為網頁應用程式。
-
-const TOKEN = '請改成你自己的同步密碼';
+// 貼到試算表的「擴充功能 → Apps Script」，執行一次 setup 後部署為網頁應用程式。
 
 const REC_SHEET = '紀錄';
 const DAY_SHEET = '每日統計';
 const CFG_SHEET = '設定';
 const REC_HEAD = ['id', '日期', '時間', '時段', '食物', '份量', '蛋白質g', 'foodId', '寫入時間'];
+
+// 第一次貼上後，在上方函式選單選「setup」按執行：完成授權並建立分頁。
+function setup() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  recSheet_(ss);
+  ensureDaySheet_(ss);
+  cfgSheet_(ss);
+  Logger.log('完成：已建立「紀錄」「每日統計」「設定」分頁。下一步：部署 → 新增部署作業 → 網頁應用程式。');
+}
 
 function doGet() {
   return out_({ ok: true, message: '蛋白質追蹤同步服務運作中' });
@@ -19,9 +26,7 @@ function doPost(e) {
   } catch (err) {
     return out_({ ok: false, error: '資料格式錯誤' });
   }
-  if (!body || body.token !== TOKEN || TOKEN === '請改成你自己的同步密碼') {
-    return out_({ ok: false, error: 'token' });
-  }
+  if (!body) return out_({ ok: false, error: '資料格式錯誤' });
 
   const lock = LockService.getScriptLock();
   lock.waitLock(20000);
