@@ -6,13 +6,37 @@ const DAY_SHEET = '每日統計';
 const CFG_SHEET = '設定';
 const REC_HEAD = ['id', '日期', '時間', '時段', '食物', '份量', '蛋白質g', 'foodId', '寫入時間'];
 
+// 知識庫初始資料的位置（GitHub Pages 上的 kb-seed.json）
+const SEED_URL = 'https://jimmywu-commits.github.io/evday/kb-seed.json';
+
+const KB = {
+  '食物庫': { head: ['id', '名稱', '分類', '份量', '蛋白質g', '熱量kcal', '備註', '啟用'], key: ['名稱', '份量'], need: ['名稱', '份量', '蛋白質g'], prefix: 'f' },
+  '知識庫': { head: ['id', '分類', '標題', '內容', '啟用'], key: ['標題'], need: ['分類', '標題', '內容'], prefix: 't' },
+  '測驗題': { head: ['id', '題目', '答案', '解說', '啟用'], key: ['題目'], need: ['題目', '答案', '解說'], prefix: 'q' },
+  '建議文案': { head: ['id', '代碼', '文案', '啟用'], key: ['代碼', '文案'], need: ['代碼', '文案'], prefix: 'm' },
+};
+
 // 第一次貼上後，在上方函式選單選「setup」按執行：完成授權並建立分頁。
 function setup() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   recSheet_(ss);
   ensureDaySheet_(ss);
   cfgSheet_(ss);
-  Logger.log('完成：已建立「紀錄」「每日統計」「設定」分頁。下一步：部署 → 新增部署作業 → 網頁應用程式。');
+  Object.keys(KB).forEach(name => kbSheet_(ss, name));
+  Logger.log('完成：已建立紀錄、每日統計、設定與 4 個知識庫分頁。下一步：執行 seedKnowledgeBase 匯入初始資料。');
+}
+
+// 從 GitHub Pages 匯入知識庫初始資料；只會新增試算表裡還沒有的資料，可以重複執行。
+function seedKnowledgeBase() {
+  const res = UrlFetchApp.fetch(SEED_URL, { muteHttpExceptions: true });
+  if (res.getResponseCode() !== 200) throw new Error('讀不到 ' + SEED_URL + '（HTTP ' + res.getResponseCode() + '），請確認 kb-seed.json 已上傳到 GitHub。');
+  const seed = JSON.parse(res.getContentText('UTF-8'));
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const report = Object.keys(KB).map(name => {
+    const r = appendKb_(ss, name, seed[name] || []);
+    return name + '：新增 ' + r.added + '、略過 ' + r.skipped;
+  });
+  Logger.log('知識庫匯入完成（版本 ' + seed.version + '）\n' + report.join('\n'));
 }
 
 function doGet() {
@@ -32,6 +56,12 @@ function doPost(e) {
   lock.waitLock(20000);
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
+    if (body.action === 'kb') return out_({ ok: true, kb: readKb_(ss) });
+    if (body.action === 'kbAppend') {
+      if (!KB[body.sheet]) return out_({ ok: false, error: '沒有這個知識庫分頁：' + body.sheet });
+      const rows = Array.isArray(body.rows) ? body.rows.slice(0, 500) : [];
+      return out_(Object.assign({ ok: true }, appendKb_(ss, body.sheet, rows)));
+    }
     const rec = recSheet_(ss);
     ensureDaySheet_(ss);
     const ops = Array.isArray(body.ops) ? body.ops.slice(0, 2000) : [];
@@ -135,4 +165,85 @@ function readConfig_(ss) {
   } catch (err) {
     return null;
   }
+}
+
+/* ---------- 知識庫 ---------- */
+function kbSheet_(ss, name) {
+  let sh = ss.getSheetByName(name);
+  if (!sh) {
+    const head = KB[name].head;
+    sh = ss.insertSheet(name);
+    sh.getRange(1, 1, 1, head.length).setValues([head]).setFontWeight('bold');
+    sh.setFrozenRows(1);
+    head.forEach((h, i) => {
+      if (h !== '蛋白質g' && h !== '熱量kcal') sh.getRange(1, i + 1, sh.getMaxRows(), 1).setNumberFormat('@');
+    });
+  }
+  return sh;
+}
+
+function kbRows_(sh) {
+  const values = sh.getDataRange().getDisplayValues();
+  if (values.length < 2) return [];
+  const head = values[0];
+  return values.slice(1).filter(r => r.some(c => c !== '')).map(r => {
+    const o = {};
+    head.forEach((h, i) => { if (h) o[h] = r[i]; });
+    return o;
+  });
+}
+
+function readKb_(ss) {
+  const out = {};
+  Object.keys(KB).forEach(name => {
+    const sh = ss.getSheetByName(name);
+    out[name] = sh ? kbRows_(sh) : [];
+  });
+  return out;
+}
+
+function kbKey_(name, row) {
+  return KB[name].key.map(k => String(row[k] || '').trim()).join('|');
+}
+
+function cleanKbRow_(name, row) {
+  const o = {};
+  KB[name].head.forEach(h => {
+    let v = row[h] === undefined || row[h] === null ? '' : row[h];
+    if (h === '蛋白質g' || h === '熱量kcal') {
+      v = v === '' ? '' : Number(v);
+      if (v !== '' && !(v >= 0 && v <= 1000)) v = '';
+    } else {
+      v = String(v).trim().slice(0, h === '內容' || h === '解說' || h === '文案' ? 500 : 80);
+    }
+    o[h] = v;
+  });
+  if (KB[name].need.some(h => o[h] === '' || o[h] === undefined)) return null;
+  if (name === '測驗題' && o['答案'] !== '對' && o['答案'] !== '錯') return null;
+  if (name === '建議文案' && !/^[A-Z0-9_]+$/.test(o['代碼'])) return null;
+  if (!o['啟用']) o['啟用'] = 'Y';
+  return o;
+}
+
+function appendKb_(ss, name, rows) {
+  const sh = kbSheet_(ss, name);
+  const existing = kbRows_(sh);
+  const ids = new Set(existing.map(r => r.id));
+  const keys = new Set(existing.map(r => kbKey_(name, r)));
+  const head = KB[name].head;
+  const stamp = Date.now().toString(36);
+  const toWrite = [];
+  let skipped = 0;
+  rows.forEach((raw, i) => {
+    const o = raw && cleanKbRow_(name, raw);
+    if (!o) { skipped++; return; }
+    if (!o.id) o.id = KB[name].prefix + stamp + i;
+    const k = kbKey_(name, o);
+    if (ids.has(o.id) || keys.has(k)) { skipped++; return; }
+    ids.add(o.id);
+    keys.add(k);
+    toWrite.push(head.map(h => o[h]));
+  });
+  if (toWrite.length) sh.getRange(sh.getLastRow() + 1, 1, toWrite.length, head.length).setValues(toWrite);
+  return { added: toWrite.length, skipped: skipped };
 }

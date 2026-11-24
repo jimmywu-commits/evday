@@ -1,6 +1,6 @@
 # 蛋白質追蹤：設定步驟
 
-整個 `protein-tracker` 資料夾就是 App，共 7 個檔案。分三步：放上 GitHub、接 Google 試算表、加到 iPhone 主畫面。
+整個 `protein-tracker` 資料夾就是 App。分四步：放上 GitHub、接 Google 試算表、加到 iPhone 主畫面、匯入 AI 智能知識庫。
 
 ---
 
@@ -8,12 +8,12 @@
 
 1. 在 GitHub 建一個**個人**的新 repo，例如 `protein-tracker`，設為 Public（免費版 Pages 需要公開）。
 2. 把這個資料夾裡的檔案上傳到 repo 根目錄：
-   `index.html`、`manifest.webmanifest`、`sw.js`、`icon-192.png`、`icon-512.png`、`apple-touch-icon.png`
+   `index.html`、`kb-seed.json`、`manifest.webmanifest`、`sw.js`、`icon-192.png`、`icon-512.png`、`apple-touch-icon.png`
    （`apps-script.gs` 和 `SETUP.md` 可以不上傳，上傳也沒關係，裡面沒有你的同步網址。）
 3. repo 的 **Settings → Pages**：Source 選 `Deploy from a branch`，Branch 選 `main`、資料夾 `/ (root)`，按 Save。
 4. 等 1～2 分鐘，網址會是 `https://你的帳號.github.io/protein-tracker/`。
 
-> 之後改版：直接覆蓋 `index.html` 上傳即可。若手機一直看到舊版，把 `sw.js` 第一行的 `protein-v1` 改成 `protein-v2` 再上傳。
+> 之後改版：直接覆蓋改過的檔案上傳即可。若手機一直看到舊版，把 `sw.js` 第一行的版本號（例如 `protein-v2`）加 1 再上傳。
 
 ---
 
@@ -63,6 +63,55 @@
 
 ---
 
+## 4. 匯入 AI 智能知識庫
+
+「AI 智能」分頁的評估、建議、衛教、測驗與食物查詢，全部讀自試算表的 4 個知識庫分頁：
+
+| 分頁 | 欄位 | 用途 |
+|---|---|---|
+| 食物庫 | 名稱、分類、份量、蛋白質g、熱量kcal、備註、啟用 | 食物查詢、加入常用按鈕 |
+| 知識庫 | 分類、標題、內容、啟用 | 每日一則、蛋白質的好處（分類填「好處」） |
+| 測驗題 | 題目、答案（對／錯）、解說、啟用 | 小測驗 |
+| 建議文案 | 代碼、文案、啟用 | 評估與週報顯示的句子 |
+
+步驟（第一次）：
+
+1. 確認 `kb-seed.json` 已經上傳到 GitHub（第 1 步）。
+2. 在 Apps Script 貼上新版 `apps-script.gs`，儲存。
+3. 函式選單選 **setup** 執行一次（建立 4 個知識庫分頁）。第一次會多要求「連線到外部服務」的授權，允許即可。
+4. 函式選單選 **seedKnowledgeBase** 執行：會從 GitHub 匯入初始資料，「執行記錄」會顯示各分頁新增了幾筆。
+5. **部署 → 管理部署作業 → 鉛筆 → 版本選「新版本」→ 部署**（網址不變）。
+6. App 會在開啟時自動更新知識庫（每 6 小時一次），也可以到 AI 智能分頁最下方按「從試算表更新知識庫」。
+
+> 還沒設定同步時，App 會先用內建的 `kb-seed.json`，功能一樣可以用。
+
+### 更新知識庫（我擴充了 kb-seed.json 之後）
+
+1. 把新的 `kb-seed.json` 上傳到 GitHub。
+2. 在 Apps Script 再執行一次 **seedKnowledgeBase**：只會新增試算表裡還沒有的資料，你自己改過或新增的列不會被覆蓋。
+3. App 會在 6 小時內自動更新；想馬上看到，就到 AI 智能分頁最下方按「從試算表更新知識庫」。
+
+### 之後怎麼擴充
+
+- **直接在試算表新增一列**：照欄位填就好，`id` 可以留空。想暫時停用某筆，把「啟用」改成 `N`。
+- **請 AI 幫忙**：例如跟 Claude 說「幫我在食物庫加 30 種便利商店的高蛋白食物」，提供同步網址後，AI 可以直接寫進試算表（會自動略過重複的資料）。
+- **建議文案**可以寫多種說法，同一個代碼的句子每天會輪流出現。可用的代碼與變數：
+
+| 代碼 | 什麼時候出現 | 可用變數 |
+|---|---|---|
+| EVAL_EMPTY / EVAL_EARLY | 今天還沒記錄 / 早上 7 點前 | {min} {good} {target} |
+| EVAL_AHEAD / EVAL_ONTRACK / EVAL_BEHIND | 和「照時間應有的進度」比較 | {diff} {expected} {min} {good} |
+| EVAL_DONE_T1 / T2 / T3 | 達到保守／推薦／高目標 | {gap} |
+| SLOT_SKIPPED / SLOT_LOW / SLOT_GOOD | 已過的時段沒吃／偏低／足量 | {slot} {g} {min} {good} |
+| SLOT_NOW | 目前這一餐的進度 | {slot} {g} {min} {good} |
+| LATE_BIG_GAP / GAP_SPLIT | 晚上差很多 / 剩下幾餐平均分配 | {gap} {n} {avg} |
+| WEEK_UP / WEEK_DOWN / WEEK_SAME | 週平均和前一週比較 | {diff} |
+| WEEK_HIT / WEEK_GREAT | 達標天數 | {hit} {days} |
+| WEAK_SLOT / WEEKEND_LOW / DIVERSITY_LOW | 最弱時段 / 週末偏低 / 來源太單一 | {slot} {avg} {diff} {food} {pct} |
+| STREAK / NO_DATA / COMBO_NONE | 連續達標 / 資料不足 / 找不到補足組合 | {n} |
+
+---
+
 ## 資料怎麼存？
 
 - 按下按鈕 → **立刻存在手機**（不用等網路）→ 約 1.5 秒後背景上傳到試算表。
@@ -76,3 +125,5 @@
 - **時段**依目前時間自動選好（11 點前早上、14 點前中午、18 點前下午、之後晚上），也可以手動切換。
 - **按鈕排序**預設「依時段自動排序」：最近 30 天在這個時段最常吃的排前面。想固定順序可在設定改成手動。
 - **日曆頁**點任何一天可看明細、刪除，或補記忘了記的。
+- **新增自訂食物**：輸入食物或店名（例如「排骨」、「茶葉蛋」、「麥當勞 雞」，可用空白分隔多個關鍵字），下方會列出資料庫的參考值，點一下就帶入份量和蛋白質。連鎖店的數值多為估計，以店家標示為準。
+- **AI 智能頁**：一鍵評估今天的進度與各餐分配；「補足建議」用你的常用按鈕算出剛好補滿的組合，點一下就記錄；週報分析近 7 天、最弱時段、週末表現與來源多樣性；另有每日一則、好處說明、小測驗與食物查詢（可一鍵加入常用按鈕）。

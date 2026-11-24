@@ -142,6 +142,17 @@
   .chips { display: flex; flex-wrap: wrap; gap: 6px; }
   .chip { padding: 8px 12px; border-radius: 18px; background: var(--card2); font-size: 14px; font-weight: 600; }
   .chip.active { background: var(--blue); color: #fff; }
+  .suggest { background: var(--card2); border-radius: 10px; overflow: hidden; }
+  .suggest:empty { display: none; }
+  .sug { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: left; gap: 10px; font-size: 15px; line-height: 1.35; }
+  .sug:last-child { border-bottom: none; }
+  .sug:active { background: var(--border); }
+  .sug small { display: block; color: var(--text2); font-size: 12px; }
+  .sug b { color: var(--green); white-space: nowrap; font-size: 15px; }
+  .sug-more { padding: 8px 12px; font-size: 12px; color: var(--text2); }
+  .picked { font-size: 13px; color: var(--green); margin-top: 8px; line-height: 1.5; }
+  .picked:empty { display: none; }
+  body.typing .sticky { position: static; }
 
   .set-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 16px; gap: 10px; }
   .set-row:last-child { border-bottom: none; }
@@ -160,7 +171,7 @@
   .dot { display: inline-block; width: 8px; height: 8px; border-radius: 4px; margin-right: 6px; vertical-align: 1px; background: var(--text3); }
   .dot.ok { background: var(--green); } .dot.bad { background: var(--red); } .dot.wait { background: var(--orange); }
 
-  .tabbar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 10; display: grid; grid-template-columns: repeat(4, 1fr); background: var(--card); border-top: 1px solid var(--border); padding: 6px 0 calc(6px + env(safe-area-inset-bottom)); }
+  .tabbar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 10; display: grid; grid-template-columns: repeat(5, 1fr); background: var(--card); border-top: 1px solid var(--border); padding: 6px 0 calc(6px + env(safe-area-inset-bottom)); }
   .tab { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; color: var(--text3); padding: 4px 0; }
   .tab svg { width: 26px; height: 26px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .tab.active { color: var(--blue); }
@@ -169,6 +180,42 @@
   .toast.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
   .toast-msg { flex: 1; white-space: pre-line; }
   .toast-undo { color: #64d2ff; font-weight: 700; padding: 8px 6px; }
+
+  .ai-out:not(:empty) { margin-top: 10px; }
+  .ai-line { display: flex; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 15px; line-height: 1.55; }
+  .ai-line:last-child { border-bottom: none; }
+  .ai-line i { flex-shrink: 0; width: 8px; height: 8px; border-radius: 4px; margin-top: 8px; background: var(--blue); }
+  .ai-line.good i { background: var(--green); } .ai-line.warn i { background: var(--orange); } .ai-line.bad i { background: var(--red); }
+  .seg3 { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--card2); border-radius: 10px; padding: 3px; }
+  .seg3 button { padding: 8px 2px; border-radius: 8px; font-size: 14px; font-weight: 600; color: var(--text2); }
+  .seg3 button.active { background: var(--card); color: var(--text); }
+  .combo { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 12px; border-radius: 12px; background: var(--card2); margin-top: 8px; text-align: left; font-size: 15px; gap: 10px; line-height: 1.4; }
+  .combo b { color: var(--green); white-space: nowrap; font-size: 16px; }
+  .combo:active { filter: brightness(.92); }
+  .tag { display: inline-block; font-size: 11px; font-weight: 600; color: var(--blue); background: var(--card2); border-radius: 6px; padding: 2px 7px; margin-bottom: 6px; }
+  .tip-title { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+  .tip-body { font-size: 15px; line-height: 1.65; color: var(--text); }
+  details.benefit { border-bottom: 1px solid var(--border); padding: 11px 0; }
+  details.benefit:last-child { border-bottom: none; }
+  details.benefit summary { font-size: 15px; font-weight: 600; list-style: none; display: flex; justify-content: space-between; cursor: pointer; }
+  details.benefit summary::-webkit-details-marker { display: none; }
+  details.benefit summary::after { content: '+'; color: var(--text3); font-weight: 400; }
+  details.benefit[open] summary::after { content: '−'; }
+  details.benefit p { font-size: 14px; color: var(--text2); line-height: 1.65; margin-top: 6px; }
+  .quiz-q { font-size: 17px; font-weight: 600; line-height: 1.5; margin-bottom: 12px; }
+  .quiz-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .quiz-btns button { padding: 14px; border-radius: 12px; background: var(--card2); font-size: 17px; font-weight: 700; }
+  .quiz-btns button.right { background: var(--t2); } .quiz-btns button.wrong { background: var(--t0); }
+  .quiz-res { font-size: 14px; line-height: 1.65; margin-top: 12px; color: var(--text2); }
+  .quiz-res b { color: var(--text); }
+  .frow { display: flex; align-items: center; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .frow:last-child { border-bottom: none; }
+  .frow-main { flex: 1; min-width: 0; line-height: 1.35; font-size: 15px; }
+  .frow-main small { display: block; color: var(--text2); font-size: 12px; }
+  .frow-g { text-align: right; font-size: 15px; font-weight: 700; color: var(--green); white-space: nowrap; line-height: 1.3; }
+  .frow-g small { display: block; color: var(--text3); font-size: 11px; font-weight: 500; }
+  .mini { padding: 7px 9px; border-radius: 8px; background: var(--card2); font-size: 13px; font-weight: 600; color: var(--blue); white-space: nowrap; }
+  .mini:disabled { color: var(--text3); }
 </style>
 </head>
 <body>
@@ -184,13 +231,15 @@
   <div class="label"><span>新增自訂食物（會變成常用按鈕）</span></div>
   <div class="card">
     <div class="grid2">
-      <input class="field full" id="new-name" placeholder="食物名稱，例如：牛排" maxlength="12">
-      <input class="field" id="new-unit" placeholder="份量，例如：100g" maxlength="12">
+      <input class="field full" id="new-name" placeholder="輸入食物或店名，例如：排骨、茶葉蛋、麥當勞" maxlength="20" autocomplete="off">
+      <div class="suggest full" id="new-suggest"></div>
+      <input class="field" id="new-unit" placeholder="份量，例如：100g" maxlength="20">
       <input class="field" id="new-g" type="number" inputmode="decimal" placeholder="每份蛋白質 g" min="0.5" max="200" step="0.5">
     </div>
+    <div class="picked" id="new-picked"></div>
     <div class="err" id="new-err"></div>
     <button class="btn btn-blue" id="new-add" style="margin-top:10px">加入常用並記錄 1 份</button>
-    <div class="hint">參考值：牛肉 100g ≈ 26g・豬里肌 100g ≈ 22g・蝦仁 100g ≈ 20g・鮪魚罐頭 1 罐 ≈ 18g・毛豆 100g ≈ 13g・起司 1 片 ≈ 4g・茶葉蛋 1 顆 ≈ 7g・超商雞胸 1 包 ≈ 24g（以包裝標示為準）</div>
+    <div class="hint">打字時會從食物資料庫找出參考值，點一下自動帶入。數值以包裝或店家標示為準，可以自己修改。</div>
   </div>
 </section>
 
@@ -232,6 +281,52 @@
       <div class="chips" id="bf-foods"></div>
     </div>
   </div>
+</section>
+
+<section class="page" id="page-ai">
+  <div class="page-top"></div>
+  <div class="label"><span>今日評估</span><span id="ai-now"></span></div>
+  <div class="card">
+    <button class="btn btn-blue" data-ai="eval" id="ai-eval-btn">一鍵評估今天</button>
+    <div class="ai-out" id="ai-eval-out"></div>
+  </div>
+
+  <div class="label"><span>補足建議</span><span id="ai-gap-label"></span></div>
+  <div class="card">
+    <div class="seg3" id="ai-target-seg"></div>
+    <div id="ai-combos"></div>
+    <div class="hint">點一個組合就會直接記錄（可復原）。組合是用你的常用按鈕算出來的。</div>
+  </div>
+
+  <div class="label"><span>週報</span><span>近 7 天，不含今天</span></div>
+  <div class="card">
+    <button class="btn btn-gray" data-ai="week" id="ai-week-btn">產生週報</button>
+    <div class="ai-out" id="ai-week-out"></div>
+  </div>
+
+  <div class="label"><span>每日一則</span><span></span></div>
+  <div class="card" id="ai-tip"></div>
+
+  <div class="label"><span>蛋白質的好處</span><span>點開看說明</span></div>
+  <div class="card" id="ai-benefits" style="padding-top:4px;padding-bottom:4px"></div>
+
+  <div class="label"><span>小測驗</span><span id="ai-quiz-score"></span></div>
+  <div class="card" id="ai-quiz"></div>
+
+  <div class="label"><span>食物查詢・CP 值＝每 100 大卡的蛋白質 g</span><span id="ai-food-count"></span></div>
+  <div class="card">
+    <input class="field" id="ai-food-q" type="search" placeholder="搜尋，例如：雞、蛋餅、超商" autocomplete="off">
+    <div class="chips" id="ai-food-cats" style="margin:10px 0"></div>
+    <div class="seg" id="ai-food-sort"><button data-food-sort="g">依蛋白質</button><button data-food-sort="cp">依 CP 值</button></div>
+    <div id="ai-food-list"></div>
+  </div>
+
+  <div class="label"><span>知識庫</span></div>
+  <div class="card">
+    <div class="hint" id="ai-kb-info" style="margin-top:0"></div>
+    <button class="btn btn-gray" data-ai="kb" style="margin-top:10px">從試算表更新知識庫</button>
+  </div>
+  <div class="hint" style="padding:12px 4px 20px">建議與評估依一般營養原則計算，僅供參考，不能取代醫師或營養師的建議。</div>
 </section>
 
 <section class="page" id="page-set">
@@ -285,6 +380,7 @@
   <button class="tab active" data-page="page-input"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>記錄</button>
   <button class="tab" data-page="page-today"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9"/><path d="M12 3a9 9 0 0 1 9 9h-9z"/></svg>今日</button>
   <button class="tab" data-page="page-cal"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>日曆</button>
+  <button class="tab" data-page="page-ai"><svg viewBox="0 0 24 24"><path d="M11 3l1.9 5.1L18 10l-5.1 1.9L11 17l-1.9-5.1L4 10l5.1-1.9z"/><path d="M18.5 14.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z"/></svg>AI 智能</button>
   <button class="tab" data-page="page-set"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>設定</button>
 </nav>
 
@@ -304,7 +400,7 @@ const PRESETS = [
   { id: 'fish', name: '魚肉', unit: '1 份 100g', g: 22 },
   { id: 'milk', name: '鮮奶', unit: '1 杯 240ml', g: 8 },
   { id: 'yogurt', name: '希臘優格', unit: '1 盒 150g', g: 15 },
-  { id: 'tofu', name: '板豆腐', unit: '半盒 150g', g: 12 },
+  { id: 'tofu', name: '板豆腐', unit: '半盒 150g', g: 13 },
 ];
 
 const $ = id => document.getElementById(id);
@@ -503,23 +599,78 @@ $('foods').addEventListener('click', e => {
   if (el) el.classList.add('pop');
 });
 
+function searchKbFoods(q, limit) {
+  q = q.trim().toLowerCase();
+  if (!q) return { list: [], total: 0 };
+  const terms = q.split(/\s+/);
+  const scored = [];
+  for (const f of kbList('食物庫')) {
+    const name = String(f['名稱']).toLowerCase();
+    const hay = [f['名稱'], f['分類'], f['備註'], f['份量']].join(' ').toLowerCase();
+    if (!terms.every(t => hay.includes(t))) continue;
+    const rank = name === q ? 0 : name.startsWith(q) ? 1 : name.includes(q) ? 2 : 3;
+    scored.push([rank, name.length, f]);
+  }
+  scored.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  return { list: scored.slice(0, limit).map(x => x[2]), total: scored.length };
+}
+
+let pickedKb = null;
+function renderNewSuggest() {
+  const q = $('new-name').value;
+  if (pickedKb && q.trim() === pickedKb['名稱']) { $('new-suggest').innerHTML = ''; return; }
+  const { list, total } = searchKbFoods(q, 6);
+  $('new-suggest').innerHTML = list.map(f => `
+    <button class="sug" data-sug="${esc(f.id)}">
+      <span>${esc(f['名稱'])}<small>${esc(f['份量'])}${f['備註'] ? '・' + esc(f['備註']) : ''}</small></span>
+      <b>${fmtG(Number(f['蛋白質g']) || 0)}g</b>
+    </button>`).join('') + (total > list.length ? `<div class="sug-more">還有 ${total - list.length} 筆，多打幾個字可以縮小範圍</div>` : '');
+}
+$('new-suggest').addEventListener('click', e => {
+  const b = e.target.closest('[data-sug]');
+  if (!b) return;
+  const f = kbList('食物庫').find(x => x.id === b.dataset.sug);
+  if (!f) return;
+  pickedKb = f;
+  $('new-name').value = String(f['名稱']).slice(0, 20);
+  $('new-unit').value = String(f['份量']).slice(0, 20);
+  $('new-g').value = fmtG(Number(f['蛋白質g']) || 0);
+  $('new-suggest').innerHTML = '';
+  $('new-err').textContent = '';
+  $('new-picked').textContent = `已帶入資料庫參考值${f['熱量kcal'] ? `（約 ${Math.round(Number(f['熱量kcal']))} 大卡）` : ''}${f['備註'] ? '：' + f['備註'] : ''}。可以修改後再加入。`;
+});
+$('new-name').addEventListener('input', () => {
+  if (pickedKb && $('new-name').value.trim() !== pickedKb['名稱']) { pickedKb = null; $('new-picked').textContent = ''; }
+  renderNewSuggest();
+});
+
 $('new-add').onclick = () => {
   const name = $('new-name').value.trim();
   const unit = $('new-unit').value.trim() || '1 份';
   const g = parseFloat($('new-g').value);
   if (!name) { $('new-err').textContent = '請輸入食物名稱'; return; }
   if (!(g > 0 && g <= 200)) { $('new-err').textContent = '請輸入每份蛋白質 g 數（0.5–200）'; return; }
-  let food = state.foods.find(f => f.name === name && f.unit === unit);
+  let food = state.foods.find(f => f.name === name && f.unit === unit) || (pickedKb && state.foods.find(f => f.id === 'kb' + pickedKb.id));
+  const existed = !!food;
   if (food) food.g = g;
-  else { food = { id: 'c' + uid(), name, unit, g, custom: true }; state.foods.push(food); }
+  else { food = { id: pickedKb ? 'kb' + pickedKb.id : 'c' + uid(), name, unit, g, custom: true }; state.foods.push(food); }
   configChanged();
   computeOrder();
   const rec = addRecord(food);
   $('new-name').value = $('new-unit').value = $('new-g').value = '';
+  $('new-suggest').innerHTML = '';
+  $('new-picked').textContent = '';
+  pickedKb = null;
   renderAll();
-  toast(`已加入常用：${name}\n${rec.time} ${rec.slot} +${fmtG(g)}g｜${statusText()}`, () => removeRecord(rec.date, rec.id));
+  toast(`${existed ? '已在常用按鈕' : '已加入常用'}：${name}\n${rec.time} ${rec.slot} +${fmtG(g)}g｜${statusText()}`, () => removeRecord(rec.date, rec.id));
 };
-['new-name', 'new-unit', 'new-g'].forEach(id => $(id).addEventListener('input', () => { $('new-err').textContent = ''; }));
+['new-name', 'new-unit', 'new-g'].forEach(id => {
+  $(id).addEventListener('input', () => { $('new-err').textContent = ''; });
+  $(id).addEventListener('focus', () => document.body.classList.add('typing'));
+  $(id).addEventListener('blur', () => setTimeout(() => {
+    if (!['new-name', 'new-unit', 'new-g'].includes(document.activeElement && document.activeElement.id)) document.body.classList.remove('typing');
+  }, 300));
+});
 
 /* ---------- 今日頁 ---------- */
 function logHtml(key) {
@@ -846,6 +997,8 @@ $('sync-save').onclick = () => {
   }
   save();
   runSync(true);
+  kb.checkedAt = 0;
+  refreshKb(false);
 };
 $('sync-now').onclick = () => runSync(true);
 $('sync-off').onclick = () => {
@@ -914,8 +1067,414 @@ document.querySelector('.tabbar').addEventListener('click', e => {
   renderAll();
 });
 
+/* ---------- 知識庫 ---------- */
+const KB_KEY = 'proteinTracker.kb';
+const KB_NAMES = ['食物庫', '知識庫', '測驗題', '建議文案'];
+let kb = { source: '', updatedAt: '', checkedAt: 0 };
+KB_NAMES.forEach(n => { kb[n] = []; });
+try { const raw = localStorage.getItem(KB_KEY); if (raw) kb = Object.assign(kb, JSON.parse(raw)); } catch (e) {}
+function saveKb() { try { localStorage.setItem(KB_KEY, JSON.stringify(kb)); } catch (e) {} }
+const kbEnabled = r => !/^(n|no|否|false|0)$/i.test(String(r['啟用'] || '').trim());
+const kbList = name => (kb[name] || []).filter(kbEnabled);
+
+function setKb(data, source) {
+  KB_NAMES.forEach(n => { kb[n] = Array.isArray(data[n]) ? data[n] : []; });
+  kb.source = source;
+  kb.version = data.version || '';
+  kb.updatedAt = new Date().toLocaleString('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  saveKb();
+}
+async function loadSeedKb() {
+  if (kb.source === '試算表' && kb['食物庫'].length) return;
+  try {
+    const r = await fetch('kb-seed.json', { cache: 'no-cache' });
+    if (!r.ok) return;
+    const d = await r.json();
+    if (kb['食物庫'].length && d.version === kb.version) return;
+    setKb(d, '內建');
+    renderAI();
+  } catch (e) {}
+}
+async function refreshKb(manual) {
+  if (!state.sync.url) { if (manual) toast('尚未設定同步網址，目前使用內建知識庫'); return; }
+  try {
+    const res = await fetch(state.sync.url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'kb' }) });
+    const data = await res.json();
+    if (!data.ok || !data.kb) throw new Error();
+    kb.checkedAt = Date.now();
+    const total = KB_NAMES.reduce((s, n) => s + (data.kb[n] || []).length, 0);
+    if (!total) {
+      saveKb();
+      if (manual) toast('試算表的知識庫還是空的，請先在 Apps Script 執行 seedKnowledgeBase');
+      return;
+    }
+    setKb(data.kb, '試算表');
+    renderAI();
+    if (manual) toast('知識庫已更新');
+  } catch (e) {
+    if (manual) toast('更新失敗：請確認網路，以及 Apps Script 已更新為新版');
+  }
+}
+function maybeRefreshKb() {
+  if (state.sync.url && Date.now() - (kb.checkedAt || 0) > 6 * 3600e3) refreshKb(false);
+}
+
+/* ---------- AI 智能（規則式分析） ---------- */
+const DEFAULT_MSG = {
+  EVAL_EMPTY: '今天還沒有記錄，先從早餐開始吧。',
+  EVAL_EARLY: '還很早，今天的目標是推薦 {target}g。',
+  EVAL_AHEAD: '進度超前 {diff}g。',
+  EVAL_ONTRACK: '進度剛好，這個時間約 {expected}g 是正常節奏。',
+  EVAL_BEHIND: '照時間應該到約 {expected}g，目前落後 {diff}g。',
+  EVAL_DONE_T1: '已達保守目標，距推薦目標還差 {gap}g。',
+  EVAL_DONE_T2: '推薦目標達成。',
+  EVAL_DONE_T3: '三個目標全部達成。',
+  SLOT_SKIPPED: '{slot}沒有記錄到蛋白質。',
+  SLOT_LOW: '{slot}只有 {g}g，建議每餐 {min}～{good}g。',
+  SLOT_GOOD: '{slot} {g}g，分量很好。',
+  SLOT_NOW: '這一餐（{slot}）目前 {g}g，建議吃到 {min}～{good}g。',
+  LATE_BIG_GAP: '已經晚上了，距保守目標還差 {gap}g。',
+  GAP_SPLIT: '還差 {gap}g，剩下 {n} 餐，每餐約 {avg}g 就能達標。',
+  WEEK_UP: '平均比前一週多 {diff}g。',
+  WEEK_DOWN: '平均比前一週少 {diff}g。',
+  WEEK_SAME: '和前一週差不多。',
+  WEEK_HIT: '近 {days} 天裡有 {hit} 天達到推薦目標。',
+  WEEK_GREAT: '近 7 天幾乎天天達標。',
+  WEAK_SLOT: '最弱的時段是{slot}，平均只有 {avg}g。',
+  WEEKEND_LOW: '週末平均比平日少 {diff}g。',
+  DIVERSITY_LOW: '{food}佔了 {pct}% 的蛋白質，來源可以再多元一點。',
+  STREAK: '已經連續 {n} 天達到推薦目標。',
+  NO_DATA: '記錄還太少，至少累積 2 天的資料再來看週報。',
+  COMBO_NONE: '常用按鈕裡找不到合適的組合，可以到下方「食物查詢」加入更多食物。',
+};
+const SLOT_END = { 早上: 11, 中午: 14, 下午: 18, 晚上: 24 };
+const hashStr = s => { let h = 0; for (const c of s) h = (h * 31 + c.codePointAt(0)) >>> 0; return h; };
+
+function msg(code, vars) {
+  const list = kbList('建議文案').filter(r => r['代碼'] === code).map(r => r['文案']).filter(Boolean);
+  const tpl = list.length ? list[hashStr(code + todayKey()) % list.length] : (DEFAULT_MSG[code] || '');
+  return tpl.replace(/\{(\w+)\}/g, (m, k) => (vars && vars[k] !== undefined ? vars[k] : m));
+}
+const mealRange = () => ({ min: Math.round(state.weight * 0.3), good: Math.round(state.weight * 0.4) });
+const slotSum = (list, s) => list.filter(r => r.slot === s).reduce((a, r) => a + Number(r.g || 0), 0);
+const hourNow = () => { const d = new Date(); return d.getHours() + d.getMinutes() / 60; };
+const linesHtml = L => L.map(l => `<div class="ai-line ${l.tone}"><i></i><span>${esc(l.text)}</span></div>`).join('');
+
+function evaluateToday() {
+  const k = todayKey(), list = dayRecords(k), total = dayTotal(k);
+  const [t1, t2, t3] = state.targets;
+  const h = hourNow();
+  const { min, good } = mealRange();
+  const base = { min, good, target: t2, total: fmtG(total) };
+  const L = [];
+  const add = (tone, code, vars) => { const t = msg(code, { ...base, ...vars }); if (t) L.push({ tone, text: t }); };
+
+  if (total >= t3) add('good', 'EVAL_DONE_T3');
+  else if (total >= t2) add('good', 'EVAL_DONE_T2');
+  else if (total >= t1) add('good', 'EVAL_DONE_T1', { gap: fmtG(t2 - total) });
+  else if (h < 7) add('info', 'EVAL_EARLY');
+  else if (!list.length) add('info', 'EVAL_EMPTY');
+  else {
+    const expected = Math.round(t2 * Math.min(1, (h - 7) / 14));
+    const diff = Math.round(total - expected);
+    if (diff >= 10) add('good', 'EVAL_AHEAD', { diff, expected });
+    else if (diff > -15) add('info', 'EVAL_ONTRACK', { expected });
+    else add('warn', 'EVAL_BEHIND', { diff: -diff, expected });
+  }
+  SLOTS.forEach(s => {
+    if (SLOT_END[s] > h) return;
+    const g = Math.round(slotSum(list, s));
+    if (!g) add('bad', 'SLOT_SKIPPED', { slot: s });
+    else if (g < min) add('warn', 'SLOT_LOW', { slot: s, g });
+    else if (g >= good) add('good', 'SLOT_GOOD', { slot: s, g });
+  });
+  if (total < t2) {
+    const cur = autoSlot();
+    const curG = Math.round(slotSum(list, cur));
+    if (curG < good) add('info', 'SLOT_NOW', { slot: cur, g: curG });
+    const remaining = SLOTS.filter(s => SLOT_END[s] > h).length;
+    if (h >= 20 && total < t1 && t1 - total >= 50) add('warn', 'LATE_BIG_GAP', { gap: fmtG(t1 - total) });
+    else if (remaining > 1 && t2 - total > good * 1.2) add('info', 'GAP_SPLIT', { gap: fmtG(t2 - total), n: remaining, avg: Math.round((t2 - total) / remaining) });
+  }
+  return L;
+}
+
+function foodFreq() {
+  const since = dayKey(new Date(Date.now() - 30 * 864e5));
+  const f = {};
+  for (const k in state.records) {
+    if (k < since) continue;
+    for (const r of state.records[k]) f[r.foodId] = (f[r.foodId] || 0) + 1;
+  }
+  return f;
+}
+
+function suggestCombos(gap) {
+  const foods = state.foods.filter(f => Number(f.g) > 0);
+  const freq = foodFreq();
+  const out = [];
+  const consider = items => {
+    const sum = items.reduce((s, [f, n]) => s + f.g * n, 0);
+    if (sum < gap - 2) return;
+    const over = sum - gap;
+    if (over > Math.max(12, gap * 0.35)) return;
+    const units = items.reduce((s, [, n]) => s + n, 0);
+    const fam = items.reduce((s, [f]) => s + Math.min(freq[f.id] || 0, 10), 0);
+    out.push({ items, sum, score: over + units * 3 + (items.length - 1) * 3 - fam * 0.8 });
+  };
+  foods.forEach(a => { for (let n = 1; n <= 4; n++) consider([[a, n]]); });
+  for (let i = 0; i < foods.length; i++)
+    for (let j = i + 1; j < foods.length; j++)
+      for (let a = 1; a <= 3; a++) for (let b = 1; b <= 3; b++) consider([[foods[i], a], [foods[j], b]]);
+  out.sort((x, y) => x.score - y.score);
+  const seen = new Set(), res = [];
+  for (const c of out) {
+    const sig = c.items.map(([f]) => f.id).sort().join(',');
+    if (seen.has(sig)) continue;
+    seen.add(sig);
+    res.push(c);
+    if (res.length === 3) break;
+  }
+  return res;
+}
+
+function weekReport() {
+  const keys = (from, n) => { const a = []; for (let i = from; i < from + n; i++) { const d = new Date(); d.setDate(d.getDate() - i); a.push(dayKey(d)); } return a; };
+  const logged = ks => ks.filter(k => dayRecords(k).length);
+  const avgOf = ks => { const l = logged(ks); return l.length ? l.reduce((s, k) => s + dayTotal(k), 0) / l.length : null; };
+  const cur = keys(1, 7), prev = keys(8, 7), month = keys(1, 28);
+  const cl = logged(cur);
+  const { min } = mealRange();
+  const L = [];
+  const add = (tone, code, vars) => { const t = msg(code, vars); if (t) L.push({ tone, text: t }); };
+  if (cl.length < 2) { add('info', 'NO_DATA', {}); return { L, stats: null }; }
+
+  const avg = avgOf(cur), pAvg = avgOf(prev);
+  const hit = cl.filter(k => dayTotal(k) >= state.targets[1]).length;
+  if (hit >= 6) add('good', 'WEEK_GREAT', {});
+  else add(hit >= 4 ? 'good' : hit >= 2 ? 'info' : 'warn', 'WEEK_HIT', { hit, days: cl.length });
+  if (pAvg !== null) {
+    const d = Math.round(avg - pAvg);
+    if (d >= 5) add('good', 'WEEK_UP', { diff: d });
+    else if (d <= -5) add('warn', 'WEEK_DOWN', { diff: -d });
+    else add('info', 'WEEK_SAME', {});
+  }
+  const slotAvg = SLOTS.map(s => [s, cl.reduce((a, k) => a + slotSum(dayRecords(k), s), 0) / cl.length]);
+  const weakest = slotAvg.slice().sort((a, b) => a[1] - b[1])[0];
+  if (weakest[1] < min) add('warn', 'WEAK_SLOT', { slot: weakest[0], avg: Math.round(weakest[1]) });
+  const ml = logged(month);
+  const isWeekend = k => [0, 6].includes(new Date(k + 'T12:00:00').getDay());
+  const we = ml.filter(isWeekend), wd = ml.filter(k => !isWeekend(k));
+  if (we.length >= 2 && wd.length >= 2) {
+    const d = Math.round(avgOf(wd) - avgOf(we));
+    if (d >= 20) add('warn', 'WEEKEND_LOW', { diff: d });
+  }
+  const share = {};
+  let tot = 0;
+  ml.forEach(k => dayRecords(k).forEach(r => { share[r.name] = (share[r.name] || 0) + Number(r.g || 0); tot += Number(r.g || 0); }));
+  const top = Object.entries(share).sort((a, b) => b[1] - a[1]);
+  if (top.length && tot > 0 && top[0][1] / tot >= 0.45) add('warn', 'DIVERSITY_LOW', { food: top[0][0], pct: Math.round(top[0][1] / tot * 100) });
+  const s = streak();
+  if (s >= 3) add('good', 'STREAK', { n: s });
+  return {
+    L,
+    stats: { avg, pAvg, hit, days: cl.length, best: Math.max(...cl.map(dayTotal)), slotAvg },
+    top: tot > 0 ? top.slice(0, 3).map(([n, g]) => [n, Math.round(g / tot * 100)]) : [],
+  };
+}
+
+let aiEvalShown = false, aiWeekShown = false, comboTarget = null, lastCombos = [];
+let tipOffset = 0, quizOrder = null, quizIdx = 0, quizAnswer = null, quizScore = { right: 0, total: 0 };
+let foodCat = '全部', foodSort = 'g';
+
+function renderAI() {
+  const now = new Date();
+  $('ai-now').textContent = `${now.getHours() < 12 ? '上午' : '下午'} ${(now.getHours() % 12) || 12}:${pad(now.getMinutes())}`;
+  $('ai-eval-btn').textContent = aiEvalShown ? '重新評估' : '一鍵評估今天';
+  $('ai-eval-out').innerHTML = aiEvalShown ? linesHtml(evaluateToday()) : '';
+  renderCombos();
+  renderWeekReport();
+  renderTip();
+  renderBenefits();
+  renderQuiz();
+  renderFoodSearch();
+  const c = n => kbList(n).length;
+  $('ai-kb-info').textContent = c('食物庫')
+    ? `來源：${kb.source || '內建'}${kb.updatedAt ? '・' + kb.updatedAt : ''}｜食物 ${c('食物庫')}・衛教 ${c('知識庫')}・測驗 ${c('測驗題')}・建議文案 ${c('建議文案')}`
+    : '知識庫載入中…';
+}
+
+function renderCombos() {
+  const total = dayTotal(todayKey());
+  const idx = comboTarget !== null ? comboTarget : Math.max(0, state.targets.findIndex(t => total < t));
+  $('ai-target-seg').innerHTML = state.targets.map((t, i) => `<button class="${i === idx ? 'active' : ''}" data-combo-target="${i}">${TARGET_NAMES[i]} ${t}</button>`).join('');
+  const gap = state.targets[idx] - total;
+  if (gap <= 0) {
+    lastCombos = [];
+    $('ai-gap-label').textContent = '';
+    $('ai-combos').innerHTML = `<div class="empty">${TARGET_NAMES[idx]}目標已達成</div>`;
+    return;
+  }
+  const remaining = Math.max(1, SLOTS.filter(s => SLOT_END[s] > hourNow()).length);
+  const split = gap > 90 && remaining > 1;
+  const aim = split ? Math.round(gap / remaining) : gap;
+  $('ai-gap-label').textContent = split ? `還差 ${fmtG(gap)}g・下一餐建議 ${aim}g` : `還差 ${fmtG(gap)}g`;
+  lastCombos = suggestCombos(aim);
+  $('ai-combos').innerHTML = lastCombos.length
+    ? lastCombos.map((c, i) => `<button class="combo" data-combo="${i}"><span>${c.items.map(([f, n]) => `${esc(f.name)} ${n} 份`).join(' + ')}</span><b>${fmtG(c.sum)}g</b></button>`).join('')
+    : `<div class="hint">${esc(msg('COMBO_NONE', {}))}</div>`;
+}
+
+function renderWeekReport() {
+  $('ai-week-btn').textContent = aiWeekShown ? '重新產生週報' : '產生週報';
+  if (!aiWeekShown) { $('ai-week-out').innerHTML = ''; return; }
+  const r = weekReport();
+  let html = '';
+  if (r.stats) {
+    const s = r.stats;
+    html += `<div class="stats" style="margin-bottom:8px">
+      <div class="stat"><span>平均每日</span><b>${fmtG(s.avg)}g</b></div>
+      <div class="stat"><span>達推薦</span><b>${s.hit}/${s.days} 天</b></div>
+      <div class="stat"><span>最高一天</span><b>${fmtG(s.best)}g</b></div>
+      <div class="stat"><span>前一週平均</span><b>${s.pAvg !== null ? fmtG(s.pAvg) + 'g' : '—'}</b></div>
+    </div>
+    <div class="slotsum" style="margin-bottom:6px">${s.slotAvg.map(([sl, v]) => `<div>${sl}平均<b>${Math.round(v)}</b></div>`).join('')}</div>`;
+  }
+  html += linesHtml(r.L);
+  if (r.top && r.top.length) html += `<div class="hint">蛋白質來源前 3 名（近 28 天）：${r.top.map(([n, p]) => `${esc(n)} ${p}%`).join('、')}</div>`;
+  $('ai-week-out').innerHTML = html;
+}
+
+function renderTip() {
+  const tips = kbList('知識庫');
+  if (!tips.length) { $('ai-tip').innerHTML = '<div class="empty">知識庫載入中…</div>'; return; }
+  const day = Math.floor(new Date(todayKey() + 'T12:00:00').getTime() / 864e5);
+  const t = tips[((day + tipOffset) % tips.length + tips.length) % tips.length];
+  $('ai-tip').innerHTML = `<span class="tag">${esc(t['分類'] || '小知識')}</span>
+    <div class="tip-title">${esc(t['標題'])}</div>
+    <div class="tip-body">${esc(t['內容'])}</div>
+    <button class="mini" data-ai="tip" style="margin-top:12px">換一則</button>`;
+}
+
+function renderBenefits() {
+  const list = kbList('知識庫').filter(t => t['分類'] === '好處');
+  $('ai-benefits').innerHTML = list.length
+    ? list.map(t => `<details class="benefit"><summary>${esc(t['標題'])}</summary><p>${esc(t['內容'])}</p></details>`).join('')
+    : '<div class="empty">知識庫載入中…</div>';
+}
+
+function renderQuiz() {
+  const qs = kbList('測驗題');
+  $('ai-quiz-score').textContent = quizScore.total ? `答對 ${quizScore.right}/${quizScore.total}` : '';
+  if (!qs.length) { $('ai-quiz').innerHTML = '<div class="empty">知識庫載入中…</div>'; return; }
+  if (!quizOrder || quizOrder.length !== qs.length) {
+    quizOrder = qs.map((_, i) => i).sort(() => Math.random() - 0.5);
+    quizIdx = 0; quizAnswer = null;
+  }
+  const q = qs[quizOrder[quizIdx % qs.length]];
+  const correct = q['答案'];
+  const cls = a => (quizAnswer === null ? '' : a === correct ? 'right' : a === quizAnswer ? 'wrong' : '');
+  $('ai-quiz').innerHTML = `<div class="quiz-q">${esc(q['題目'])}</div>
+    <div class="quiz-btns">
+      <button data-quiz="對" class="${cls('對')}">對</button>
+      <button data-quiz="錯" class="${cls('錯')}">錯</button>
+    </div>
+    ${quizAnswer === null ? '' : `<div class="quiz-res"><b>${quizAnswer === correct ? '答對了。' : `答案是「${esc(correct)}」。`}</b>${esc(q['解說'])}</div>
+    <button class="mini" data-ai="quiz-next" style="margin-top:12px">下一題</button>`}`;
+}
+
+function renderFoodSearch() {
+  const all = kbList('食物庫');
+  const cats = ['全部', ...new Set(all.map(f => f['分類']).filter(Boolean))];
+  if (!cats.includes(foodCat)) foodCat = '全部';
+  $('ai-food-cats').innerHTML = cats.map(c => `<button class="chip ${c === foodCat ? 'active' : ''}" data-food-cat="${esc(c)}">${esc(c)}</button>`).join('');
+  document.querySelectorAll('#ai-food-sort button').forEach(b => b.classList.toggle('active', b.dataset.foodSort === foodSort));
+  const q = $('ai-food-q').value.trim().toLowerCase();
+  const g = f => Number(f['蛋白質g']) || 0;
+  const kcal = f => Number(f['熱量kcal']) || 0;
+  const incomplete = f => /非完整/.test(f['備註'] || '');
+  const cp = f => (kcal(f) > 0 && !incomplete(f) ? g(f) / kcal(f) * 100 : 0);
+  let list = all.filter(f => (foodCat === '全部' || f['分類'] === foodCat) && (!q || [f['名稱'], f['分類'], f['備註']].join(' ').toLowerCase().includes(q)));
+  list.sort((a, b) => (foodSort === 'cp' ? cp(b) - cp(a) : g(b) - g(a)));
+  $('ai-food-count').textContent = all.length ? `共 ${list.length} 筆` : '';
+  const shown = list.slice(0, 40);
+  $('ai-food-list').innerHTML = shown.length ? shown.map(f => {
+    const inCommon = state.foods.some(x => x.id === 'kb' + f.id || (x.name === f['名稱'] && x.unit === f['份量']));
+    return `<div class="frow">
+      <div class="frow-main">${esc(f['名稱'])}<small>${esc(f['份量'])}${f['備註'] ? '・' + esc(f['備註']) : ''}</small></div>
+      <div class="frow-g">${fmtG(g(f))}g<small>${kcal(f) ? `${Math.round(kcal(f))} 大卡・CP ${fmtG(cp(f))}` : ''}</small></div>
+      <button class="mini" data-food-log="${esc(f.id)}">記錄</button>
+      <button class="mini" data-food-add="${esc(f.id)}" ${inCommon ? 'disabled' : ''}>${inCommon ? '已加入' : '+常用'}</button>
+    </div>`;
+  }).join('') + (list.length > shown.length ? `<div class="hint">還有 ${list.length - shown.length} 筆，請輸入關鍵字縮小範圍</div>` : '')
+    : `<div class="empty">${all.length ? '找不到符合的食物' : '知識庫載入中…'}</div>`;
+}
+
+function kbFoodToFood(f) {
+  return { id: 'kb' + f.id, name: String(f['名稱']).slice(0, 20), unit: String(f['份量']).slice(0, 20), g: Number(f['蛋白質g']) || 0, custom: true };
+}
+
+$('page-ai').addEventListener('click', e => {
+  const a = e.target.closest('[data-ai]');
+  if (a) {
+    const act = a.dataset.ai;
+    if (act === 'eval') aiEvalShown = true;
+    if (act === 'week') aiWeekShown = true;
+    if (act === 'tip') tipOffset++;
+    if (act === 'quiz-next') { quizIdx++; quizAnswer = null; }
+    if (act === 'kb') { refreshKb(true); return; }
+    renderAI();
+    return;
+  }
+  const ct = e.target.closest('[data-combo-target]');
+  if (ct) { comboTarget = Number(ct.dataset.comboTarget); renderCombos(); return; }
+  const cb = e.target.closest('[data-combo]');
+  if (cb) {
+    const c = lastCombos[Number(cb.dataset.combo)];
+    if (!c) return;
+    const recs = [];
+    c.items.forEach(([f, n]) => { for (let i = 0; i < n; i++) recs.push(addRecord(f)); });
+    renderAll();
+    toast(`已記錄 ${c.items.map(([f, n]) => `${f.name}×${n}`).join('、')}（+${fmtG(c.sum)}g）\n${statusText()}`, () => recs.forEach(r => removeRecord(r.date, r.id)));
+    return;
+  }
+  const qa = e.target.closest('[data-quiz]');
+  if (qa && quizAnswer === null) {
+    const qs = kbList('測驗題');
+    const q = qs[quizOrder[quizIdx % qs.length]];
+    quizAnswer = qa.dataset.quiz;
+    quizScore.total++;
+    if (quizAnswer === q['答案']) quizScore.right++;
+    renderQuiz();
+    return;
+  }
+  const fc = e.target.closest('[data-food-cat]');
+  if (fc) { foodCat = fc.dataset.foodCat; renderFoodSearch(); return; }
+  const fs = e.target.closest('[data-food-sort]');
+  if (fs) { foodSort = fs.dataset.foodSort; renderFoodSearch(); return; }
+  const fl = e.target.closest('[data-food-log]');
+  if (fl) {
+    const f = kbList('食物庫').find(x => x.id === fl.dataset.foodLog);
+    if (!f) return;
+    const food = state.foods.find(x => x.id === 'kb' + f.id) || kbFoodToFood(f);
+    const rec = addRecord(food);
+    renderAll();
+    toast(`${rec.time} ${rec.slot}｜${food.name} +${fmtG(food.g)}g\n${statusText()}`, () => removeRecord(rec.date, rec.id));
+    return;
+  }
+  const fa = e.target.closest('[data-food-add]');
+  if (fa) {
+    const f = kbList('食物庫').find(x => x.id === fa.dataset.foodAdd);
+    if (!f) return;
+    state.foods.push(kbFoodToFood(f));
+    configChanged(); computeOrder(); renderAll();
+    toast(`已把「${f['名稱']}」加入記錄頁的常用按鈕`);
+  }
+});
+$('ai-food-q').addEventListener('input', renderFoodSearch);
+
 function renderAll() {
-  renderSummary(); renderFoods(); renderToday(); renderWeek(); renderCalendar(); renderSettings();
+  renderSummary(); renderFoods(); renderToday(); renderWeek(); renderCalendar(); renderSettings(); renderAI();
 }
 
 let lastDay = todayKey();
@@ -923,6 +1482,7 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState !== 'visible') return;
   if (todayKey() !== lastDay) { lastDay = todayKey(); currentSlot = autoSlot(); computeOrder(); renderAll(); }
   scheduleSync(0);
+  maybeRefreshKb();
 });
 
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
@@ -932,6 +1492,7 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') {
 computeOrder();
 renderAll();
 scheduleSync(0);
+loadSeedKb().then(maybeRefreshKb);
 </script>
 </body>
 </html>
